@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { Sidebar } from "./sidebar";
 import { EditorArea } from "./editor-area";
+import { EditorTabs } from "./editor-area/editor-tabs";
 import { SidebarToggleButton } from "./sidebar/sidebar-toggle-button";
 import { useSidebar } from "@/hooks/use-sidebar";
 
@@ -18,6 +19,7 @@ export function AppLayout() {
     clampSidebarWidth(sidebarWidth, maxSidebarWidth),
   );
   const draftSidebarWidthRef = useRef(draftSidebarWidth);
+  const tabChromeLeft = isSidebarCollapsed ? 132 : draftSidebarWidth + 12;
 
   const setClampedSidebarWidth = useCallback(
     (nextWidth: number) => {
@@ -100,6 +102,10 @@ export function AppLayout() {
     <div className="relative h-screen w-screen overflow-hidden bg-transparent text-text-primary">
       <div
         data-tauri-drag-region
+        className="absolute inset-x-0 top-0"
+        style={{ height: "var(--chrome-drag-height)" }}
+      />
+      <div
         className="pointer-events-auto absolute left-0 top-0 z-50 flex items-center"
         style={{
           height: "calc(var(--chrome-control-height) + var(--chrome-control-padding) * 2)",
@@ -107,6 +113,18 @@ export function AppLayout() {
         }}
       >
         <SidebarToggleButton />
+      </div>
+      <div
+        className="pointer-events-none absolute top-0 z-40"
+        style={{
+          left: tabChromeLeft,
+          right: 12,
+          transition: isSidebarDragging ? "none" : "left 140ms ease-out",
+        }}
+      >
+        <div className="pointer-events-auto">
+          <EditorTabs />
+        </div>
       </div>
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex min-h-0 flex-1">

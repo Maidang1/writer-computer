@@ -1,6 +1,5 @@
 import { useActiveTab, useActiveTabId, useOpenTabs } from "@/hooks/use-tabs";
 import { pageKind } from "./page-kinds";
-import { EditorTabs } from "./editor-tabs";
 import { EditorSearchOverlay } from "./editor-search-overlay";
 
 function EditorArea() {
@@ -10,11 +9,6 @@ function EditorArea() {
 
   return (
     <div className="relative h-full overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-30">
-        <div className="pointer-events-auto">
-          <EditorTabs />
-        </div>
-      </div>
       <div className="relative h-full min-h-0 overflow-hidden">
         {tabs.map((tab) => {
           const k = pageKind(tab.location);

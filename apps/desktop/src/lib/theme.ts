@@ -27,16 +27,17 @@ function resolveMode(preference: ThemePreference): ThemeMode {
 
 /** How the translucent/contrast sliders translate into CSS-var values. The CSS
  *  expects normalized inputs (`--bg-opacity` 0–1, `--contrast` 0–2), not the
- *  raw 0–100 / 0–200 ranges the user manipulates, so the mapping happens here
- *  rather than as a 1:1 cssVar binding. */
+ *  raw slider ranges the user manipulates, so the mapping happens here rather
+ *  than as a 1:1 cssVar binding. */
 const DERIVED_PRIMARIES: Partial<Record<PrimarySuffix, (v: unknown) => [string, string]>> = {
   translucent: (v) => {
     const t = clamp(Number(v) || 0, 0, 100);
     return ["--bg-opacity", String(1 - (t / 100) * 0.95)];
   },
   contrast: (v) => {
-    const c = Math.max(0, Number(v) || 0);
-    return ["--contrast", String(c / 100)];
+    // Slider 0-100 maps to effective 0.2-1.0
+    const c = clamp(Number(v) || 0, 0, 100);
+    return ["--contrast", String(0.2 + (c / 100) * 0.8)];
   },
 };
 

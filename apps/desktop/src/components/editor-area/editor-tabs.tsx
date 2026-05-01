@@ -17,7 +17,6 @@ import {
 } from "@/hooks/use-tabs";
 import { ScrollFade } from "@/components/scroll-fade";
 import { useScrollActiveTabIntoView } from "@/hooks/use-scroll-active-tab-into-view";
-import { useSidebar } from "@/hooks/use-sidebar";
 import { useEditorStore } from "@/stores/editor-store";
 import { getRelativePath } from "@/lib/paths";
 import { pageKind } from "./page-kinds";
@@ -111,7 +110,6 @@ export function EditorTabs() {
   const openNewTab = useOpenNewTab();
   const workspaceRoot = useWorkspaceRoot();
   const [, startTransition] = useTransition();
-  const { isSidebarCollapsed } = useSidebar();
   useScrollActiveTabIntoView();
 
   const handleTabContextMenu = useCallback(
@@ -153,10 +151,10 @@ export function EditorTabs() {
   return (
     <div
       data-tauri-drag-region
-      className="group/tabs flex min-w-0 items-center gap-3 transition-[padding] duration-[140ms] ease-out"
+      className="group/tabs flex min-w-0 items-center gap-3"
       style={{
         height: "calc(var(--chrome-control-height) + var(--chrome-control-padding) * 2)",
-        padding: `var(--chrome-control-padding) 12px var(--chrome-control-padding) ${isSidebarCollapsed ? "132px" : "12px"}`,
+        paddingBlock: "var(--chrome-control-padding)",
       }}
     >
       <div className="flex shrink-0 items-center gap-0.5">
@@ -182,13 +180,14 @@ export function EditorTabs() {
         </button>
       </div>
 
-      <div className="relative flex min-w-0 flex-1 items-center">
+      <div data-tauri-drag-region className="relative flex min-w-0 flex-1 items-center">
         <ScrollFade
           axis="horizontal"
           data-tab-strip
+          data-tauri-drag-region
           className="flex min-w-0 items-center overflow-x-auto scrollbar-none"
         >
-          <div className="flex min-w-max items-center gap-1">
+          <div data-tauri-drag-region className="flex min-w-max items-center gap-1">
             {tabs.map((tab) => {
               const isActive = tab.id === activeTabId;
 

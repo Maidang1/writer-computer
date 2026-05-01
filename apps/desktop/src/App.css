@@ -40,7 +40,7 @@
     -apple-system-body, ui-sans-serif, -apple-system, system-ui, "Segoe UI", Helvetica,
     "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   --bg-opacity: 0.715;
-  --contrast: 0.5;
+  --contrast: 0.328;
 
   /* Derived background — applied once on body. Editor and settings pages
      don't add their own bg layer; doing so would multiply opacity and break
@@ -97,6 +97,7 @@
 
   --chrome-control-height: 32px;
   --chrome-control-padding: 12px;
+  --chrome-drag-height: 72px;
   --writer-editor-max-width: 734px;
   --writer-editor-side-padding: clamp(1.5rem, 4vw, 4rem);
   --writer-editor-outer-width: calc(
@@ -112,8 +113,6 @@
   line-height: 1.5;
   color: var(--text-secondary);
   background-color: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Light mode: settings/theme cards rely on their border alone — a tinted fill

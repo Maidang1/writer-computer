@@ -9,7 +9,7 @@ Supersedes [`body-theming-spec.md`](./body-theming-spec.md), which scoped a smal
 ## Goals
 
 - Let users customize Accent, Background, Foreground, UI font, Editor font, Translucency, and Contrast per mode (light/dark) — all live, with no restart.
-- Ship 4 curated presets (`Codex`, `Default`, `Warm Paper`, `High Contrast`) plus a `Custom` state when the user edits any token.
+- Ship 4 curated presets (`Writer`, `Default`, `Warm Paper`, `High Contrast`) plus a `Custom` state when the user edits any token.
 - Provide Import (paste a JSON blob) and Copy (export current primaries to clipboard) per mode.
 - Apply translucency app-wide (every surface), not just the sidebar.
 - Keep the system testable: derivations are pure CSS expressions; JS only writes primaries.
@@ -123,7 +123,7 @@ Live preview as the user edits.
 New keys (all in `apps/desktop/src-tauri/src/config.rs`):
 
 ```
-theme.light.preset       enum  [Codex, Default, Warm Paper, High Contrast, custom]   default: Codex
+theme.light.preset       enum  [Writer, Default, Warm Paper, High Contrast, custom]  default: Writer
 theme.light.accent       color                                                       default: "#0169CC"
 theme.light.background   color                                                       default: "#FFFFFF"
 theme.light.foreground   color                                                       default: "#0D0D0D"
@@ -132,7 +132,7 @@ theme.light.editor-font  string                                                 
 theme.light.translucent  range [0, 100, step 1]                                      default: 0    (solid)
 theme.light.contrast     range [0, 200, step 1]                                      default: 40
 
-theme.dark.preset       enum  [Codex, Default, Warm Paper, High Contrast, custom]    default: Codex
+theme.dark.preset        enum  [Writer, Default, Warm Paper, High Contrast, custom]  default: Writer
 theme.dark.accent       color                                                        default: "#0169CC"
 theme.dark.background   color                                                        default: "#111111"
 theme.dark.foreground   color                                                        default: "#FCFCFC"
@@ -228,7 +228,7 @@ Tauri's macOS window already has vibrancy enabled (`html, body, #root` are `back
 
 ## Migration
 
-- Existing users have no `theme.*` keys → backend defaults apply → app looks ~identical to today (Codex preset is close to current dark, Default is close to current light).
+- Existing users have no `theme.*` keys → backend defaults apply → app looks ~identical to today (Writer preset is close to current dark, Default is close to current light).
 - The previous fixed CSS color literals in `:root` and `[data-theme="light"]` are removed; their consumers all reference CSS vars already, so no component-level changes are needed beyond the App.css edit.
 - One-time migration: none required. The settings file gains new keys lazily as the user edits them.
 

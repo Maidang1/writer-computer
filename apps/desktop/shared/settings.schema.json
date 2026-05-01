@@ -69,7 +69,7 @@
       "category": "Theme",
       "$comment": "Valid values are populated at runtime from shared/themes/*.json plus the special \"custom\" sentinel; we intentionally don't enum-constrain the contract so adding a preset doesn't require a schema edit.",
       "type": "string",
-      "default": "Codex"
+      "default": "Writer"
     },
     {
       "key": "theme.light.accent",
@@ -78,7 +78,7 @@
       "category": "Theme",
       "type": "color",
       "cssVar": "--accent",
-      "default": "#0169CC"
+      "default": "#0061FF"
     },
     {
       "key": "theme.light.background",
@@ -105,7 +105,7 @@
       "category": "Theme",
       "type": "string",
       "cssVar": "--ui-font",
-      "default": "Geist, Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      "default": "-apple-system-body, ui-sans-serif, -apple-system, system-ui, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\""
     },
     {
       "key": "theme.light.editor-font",
@@ -114,7 +114,7 @@
       "category": "Theme",
       "type": "string",
       "cssVar": "--editor-font",
-      "default": "Geist, Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      "default": "-apple-system-body, ui-sans-serif, -apple-system, system-ui, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\""
     },
     {
       "key": "theme.light.translucent",
@@ -125,18 +125,18 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "default": 0
+      "default": 10
     },
     {
       "key": "theme.light.contrast",
       "label": "Contrast",
-      "description": "Light theme contrast: alpha multiplier on borders, cards, hover bgs.",
+      "description": "alpha multiplier on borders, cards, hover bgs.",
       "category": "Theme",
       "type": "range",
       "min": 0,
-      "max": 200,
+      "max": 100,
       "step": 1,
-      "default": 40
+      "default": 20
     },
     {
       "key": "theme.dark.preset",
@@ -145,7 +145,7 @@
       "category": "Theme",
       "$comment": "Valid values are populated at runtime from shared/themes/*.json plus the special \"custom\" sentinel; we intentionally don't enum-constrain the contract so adding a preset doesn't require a schema edit.",
       "type": "string",
-      "default": "Codex"
+      "default": "Writer"
     },
     {
       "key": "theme.dark.accent",
@@ -154,7 +154,7 @@
       "category": "Theme",
       "type": "color",
       "cssVar": "--accent",
-      "default": "#0169CC"
+      "default": "#FF6A00"
     },
     {
       "key": "theme.dark.background",
@@ -201,18 +201,18 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "default": 30
+      "default": 20
     },
     {
       "key": "theme.dark.contrast",
       "label": "Contrast",
-      "description": "Dark theme contrast: alpha multiplier on borders, cards, hover bgs.",
+      "description": "alpha multiplier on borders, cards, hover bgs.",
       "category": "Theme",
       "type": "range",
       "min": 0,
-      "max": 200,
+      "max": 100,
       "step": 1,
-      "default": 50
+      "default": 16
     },
     {
       "key": "files.associations",
