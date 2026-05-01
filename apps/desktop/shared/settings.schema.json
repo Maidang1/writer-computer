@@ -78,7 +78,7 @@
       "category": "Theme",
       "type": "color",
       "cssVar": "--accent",
-      "default": "#0061FF"
+      "default": "#FF6A00"
     },
     {
       "key": "theme.light.background",

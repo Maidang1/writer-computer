@@ -4,6 +4,7 @@
 
 - Update the app icon.
 - Default new document content to a heading prompt (`# `) so a fresh file opens ready for a title.
+- Unify the default theme accent to `#FF6A00` across light and dark modes.
 
 ## 2026-04-30
 
