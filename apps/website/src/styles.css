@@ -253,7 +253,7 @@ a {
 /* ---------- screenshots (right, independently scrollable) ---------- */
 .screenshots {
   flex-shrink: 0;
-  width: 45vw;
+  width: 30vw;
   padding-right: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -270,23 +270,41 @@ a {
 }
 
 .shot {
+  display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 610 / 420;
+  aspect-ratio: 1920 / 1206;
   background: var(--surface-screenshot);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.shot video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.05);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.shot.is-loaded video {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1279px) {
   .screenshots {
-    width: clamp(360px, 44vw, 610px);
+    width: clamp(360px, 30vw, 610px);
   }
 
   .shot {
     width: 100%;
     height: auto;
-    aspect-ratio: 610 / 420;
   }
 }
 

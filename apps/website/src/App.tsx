@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { AppleGlyph, WriterMark } from "./components/Mark";
 
 const FEATURES = [
@@ -8,10 +10,16 @@ const FEATURES = [
   { label: "Frontmatter", description: "YAML metadata support built-in" },
 ];
 
-const SCREENSHOTS = [
-  { id: "editor", alt: "Writer editor view" },
-  { id: "palette", alt: "Writer command palette" },
-  { id: "multi-window", alt: "Writer multi-window layout" },
+const DEMOS = [
+  "/demo-videos/00.mp4",
+  "/demo-videos/01.mp4",
+  "/demo-videos/02.mp4",
+  "/demo-videos/03.mp4",
+  "/demo-videos/04.mp4",
+  "/demo-videos/05.mp4",
+  "/demo-videos/06.mp4",
+  "/demo-videos/07.mp4",
+  "/demo-videos/08.mp4",
 ];
 
 export function App() {
@@ -73,11 +81,28 @@ export function App() {
         </ul>
       </main>
 
-      <aside className="screenshots" aria-hidden="true">
-        {SCREENSHOTS.map(({ id, alt }) => (
-          <div className="shot" key={id} role="img" aria-label={alt} />
+      <aside className="screenshots">
+        {DEMOS.map((src) => (
+          <DemoVideo key={src} src={src} />
         ))}
       </aside>
+    </div>
+  );
+}
+
+function DemoVideo({ src }: { src: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className={loaded ? "shot is-loaded" : "shot"}>
+      <video
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        onLoadedData={() => setLoaded(true)}
+      />
     </div>
   );
 }
