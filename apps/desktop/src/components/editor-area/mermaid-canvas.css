@@ -41,7 +41,7 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 45%;
+  width: 33%;
   border-right: 1px solid var(--border-color);
   background-color: var(--surface-card);
   overflow: hidden;
@@ -53,7 +53,7 @@
 }
 
 .cm-mermaid-canvas.is-editing .cm-mermaid-canvas-viewport {
-  left: 45%;
+  left: 33%;
 }
 
 /* Inner CodeMirror fills the editor panel. */
@@ -73,9 +73,19 @@
   padding: 8px 0;
   max-width: none;
   margin: 0;
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .cm-mermaid-canvas .cm-mermaid-canvas-editor .cm-line {
   padding: 0 8px;
+}
+
+/* Dark mode: tint the editor panel darker than the surrounding canvas so the
+   code surface reads as a recessed pane instead of a lifted card. The default
+   `--surface-card` lightens against the bg, which is wrong here. */
+[data-theme="dark"] .cm-mermaid-canvas-editor {
+  background-color: color-mix(in srgb, black calc(var(--contrast) * 24%), transparent);
 }
 
 /* Restore native scrolling on the inner scroller. The outer prosemark theme
