@@ -41,6 +41,19 @@ function run(cmd: StateCommand, state: EditorState): { state: EditorState; ran: 
   return { state: next, ran };
 }
 
+function widgetNames(state: EditorState): Array<{ from: number; to: number; name: string }> {
+  const decos = state.field(__test.listDecorationsField);
+  const widgets: Array<{ from: number; to: number; name: string }> = [];
+  decos.all.between(0, state.doc.length, (from, to, deco) => {
+    const widget = (deco.spec as { widget?: unknown }).widget;
+    if (typeof widget !== "object" || widget === null) return;
+    const ctor = (widget as { constructor?: unknown }).constructor;
+    if (typeof ctor !== "function") return;
+    widgets.push({ from, to, name: ctor.name });
+  });
+  return widgets;
+}
+
 // ---------------------------------------------------------------------------
 // isOnListLine
 // ---------------------------------------------------------------------------
@@ -360,5 +373,30 @@ describe("listDecorationsField", () => {
       total++;
     });
     expect(total).toBe(6);
+  });
+
+  test("anchors the bullet marker at the hidden prefix end", () => {
+    const s = makeState("- ", 2);
+    expect(widgetNames(s).filter((w) => w.name === "BulletMarkerWidget")).toEqual([
+      { from: 2, to: 2, name: "BulletMarkerWidget" },
+    ]);
+  });
+
+  test("anchors the checkbox marker at the hidden prefix end", () => {
+    const s = makeState("- [ ] ", 6);
+    expect(widgetNames(s).filter((w) => w.name === "CheckboxWidget")).toEqual([
+      { from: 6, to: 6, name: "CheckboxWidget" },
+    ]);
+  });
+
+  test("uses the same marker anchor when body text exists", () => {
+    const bullet = makeState("- body", 2);
+    const task = makeState("- [ ] body", 6);
+    expect(widgetNames(bullet).filter((w) => w.name === "BulletMarkerWidget")).toEqual([
+      { from: 2, to: 2, name: "BulletMarkerWidget" },
+    ]);
+    expect(widgetNames(task).filter((w) => w.name === "CheckboxWidget")).toEqual([
+      { from: 6, to: 6, name: "CheckboxWidget" },
+    ]);
   });
 });

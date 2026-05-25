@@ -246,16 +246,18 @@ function buildListDecorations(state: EditorState): ListDecorations {
         prefixEnd = node.to + 1;
         widget = new BulletMarkerWidget(depth);
       }
-      // Point widget at line.from, side -1 → rendered before the source
-      // prefix chars (which are hidden below) so the glyph sits at the
-      // visual start of the line.
-      allRanges.push(Decoration.widget({ widget, side: -1 }).range(line.from));
       // Hide the source prefix chars (leading whitespace + `- ` or
       // `- [ ] `) via the clipped zero-width `.cm-list-prefix-hidden` span.
       // Chars stay in the DOM as text nodes — that's the load-bearing
       // difference from `Decoration.replace`: hit-tests resolve into the
       // collapsed text rect instead of snapping to a widgetTo boundary.
       allRanges.push(listPrefixHiddenDecoration.range(line.from, prefixEnd));
+      // Point widget at prefixEnd, side -1 → rendered after the hidden
+      // source prefix, which has zero inline width, so the marker still
+      // occupies the visual prefix gutter. Anchoring it at prefixEnd keeps
+      // the existing marker widget available as the body-column coordinate
+      // target when the list item is empty.
+      allRanges.push(Decoration.widget({ widget, side: -1 }).range(prefixEnd));
       // Marker / atomic tracking — `listBackspace` checks `decos.marker`
       // for the right-edge-of-prefix case (delete the whole prefix back to
       // line.from), and `decos.atomic` already carries indent-step ranges
