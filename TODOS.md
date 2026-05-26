@@ -6,6 +6,7 @@
 
 ## Done
 
+- Table unfold codeblock display: [`SPECs/table-unfold-codeblock-spec.md`](SPECs/table-unfold-codeblock-spec.md) — render touched table markdown as codeblock-styled source lines in the main editor instead of plain prose.
 - Empty list caret visibility: [`SPECs/empty-list-caret-spec.md`](SPECs/empty-list-caret-spec.md) — keep the caret visible at the body column on empty bullet and task-list items whose source marker is hidden by the list-prefix renderer.
 - List selection and TODO checkbox regression: [`SPECs/list-selection-todo-checkbox-regression-spec.md`](SPECs/list-selection-todo-checkbox-regression-spec.md) — replace list-prefix replace widgets with point widgets to stop selection/caret snaps, and render TODO checkboxes as a single non-native span so drag-selection and nested alignment work.
 - Mermaid canvas widget: [`SPECs/mermaid-canvas-widget-spec.md`](SPECs/mermaid-canvas-widget-spec.md) — render mermaid blocks in a fixed-height canvas-style frame with pan, zoom, reset-to-fit, and an edit-code toggle.

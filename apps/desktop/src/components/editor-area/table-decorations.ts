@@ -1,9 +1,14 @@
+import { type EditorState, type Range } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
 import {
   foldableSyntaxFacet,
   selectAllDecorationsOnSelectExtension,
 } from "@/lib/prosemark-core/main";
+
+const fallbackMonospaceCodeFont =
+  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
 
 type Alignment = "left" | "center" | "right";
 
@@ -43,6 +48,36 @@ function parseMarkdownTable(text: string): ParsedTable | undefined {
   const rows = lines.slice(2).map(parseCells);
 
   return { headers, alignments, rows };
+}
+
+function tableSourceLineClass(isFirst: boolean, isLast: boolean): string {
+  let className = "cm-table-source-line";
+  if (isFirst) className += " cm-table-source-line-first";
+  if (isLast) className += " cm-table-source-line-last";
+  return className;
+}
+
+function buildTableSourceLineDecorations(
+  state: EditorState,
+  node: { from: number; to: number },
+): Range<Decoration>[] {
+  const decorations: Range<Decoration>[] = [];
+  const firstLine = state.doc.lineAt(node.from);
+
+  for (let pos = firstLine.from; pos <= node.to; ) {
+    const line = state.doc.lineAt(pos);
+    const isFirst = line.from === firstLine.from;
+    const isLast = line.to >= node.to;
+
+    decorations.push(
+      Decoration.line({ class: tableSourceLineClass(isFirst, isLast) }).range(line.from),
+    );
+
+    if (isLast) break;
+    pos = line.to + 1;
+  }
+
+  return decorations;
 }
 
 // --- Widget ---
@@ -123,11 +158,15 @@ class TableWidget extends WidgetType {
 
 const tableFoldExtension = foldableSyntaxFacet.of({
   nodePath: "Table",
+  keepDecorationOnUnfold: true,
   buildDecorations: (state, node, selectionTouchesRange) => {
-    if (selectionTouchesRange) return undefined;
     const text = state.doc.sliceString(node.from, node.to);
     const parsed = parseMarkdownTable(text);
     if (!parsed) return undefined;
+
+    if (selectionTouchesRange) {
+      return buildTableSourceLineDecorations(state, node);
+    }
 
     return Decoration.replace({
       widget: new TableWidget(parsed, text),
@@ -171,6 +210,28 @@ const tableTheme = EditorView.baseTheme({
   ".cm-table-widget th": {
     fontWeight: "600",
     backgroundColor: "var(--surface-subtle, var(--code-bg, #2d2d2d))",
+  },
+  ".cm-table-source-line": {
+    display: "block",
+    marginLeft: "0",
+    paddingLeft: "12px",
+    paddingRight: "12px",
+    backgroundColor: "var(--pm-code-background-color)",
+    fontFamily: codeFontFamily,
+    fontVariantLigatures: "none",
+    fontFeatureSettings: '"calt" 0',
+    fontKerning: "none",
+  },
+  ".cm-activeLine.cm-table-source-line": {
+    backgroundColor: "var(--pm-code-background-color)",
+  },
+  ".cm-table-source-line-first": {
+    borderTopLeftRadius: "0.4rem",
+    borderTopRightRadius: "0.4rem",
+  },
+  ".cm-table-source-line-last": {
+    borderBottomLeftRadius: "0.4rem",
+    borderBottomRightRadius: "0.4rem",
   },
 });
 
