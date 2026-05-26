@@ -79,6 +79,36 @@ describe("tableDecorations", () => {
     ]);
   });
 
+  test("parses Obsidian wiki links with table-escaped aliases in preview cells", () => {
+    expect(parseTableCellInlineMarkdown("[[Format your notes\\|Formatting]]")).toEqual([
+      {
+        type: "element",
+        tag: "span",
+        className: "cm-wiki-link",
+        wikiTarget: "Format your notes\\|Formatting",
+        children: [{ type: "text", text: "Formatting" }],
+      },
+    ]);
+  });
+
+  test("parses table-cell wiki links inside other inline markdown", () => {
+    expect(parseTableCellInlineMarkdown("**[[Roadmap]]**")).toEqual([
+      {
+        type: "element",
+        tag: "strong",
+        children: [
+          {
+            type: "element",
+            tag: "span",
+            className: "cm-wiki-link",
+            wikiTarget: "Roadmap",
+            children: [{ type: "text", text: "Roadmap" }],
+          },
+        ],
+      },
+    ]);
+  });
+
   test("keeps inline html in table cells as text", () => {
     expect(parseTableCellInlineMarkdown("<img src=x onerror=alert(1)> **safe**")).toEqual([
       { type: "text", text: "<img src=x onerror=alert(1)> " },

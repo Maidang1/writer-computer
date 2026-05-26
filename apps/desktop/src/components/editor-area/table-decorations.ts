@@ -2,13 +2,19 @@ import { type EditorState, type Range } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
 import type { SyntaxNode } from "@lezer/common";
-import { GFM, parser as markdownParser } from "@lezer/markdown";
+import {
+  GFM,
+  parser as markdownParser,
+  type InlineContext,
+  type MarkdownConfig,
+} from "@lezer/markdown";
 import * as emoji from "node-emoji";
 import {
   foldableSyntaxFacet,
   prosemarkMarkdownSyntaxExtensions,
   selectAllDecorationsOnSelectExtension,
 } from "@/lib/prosemark-core/main";
+import { parseWikiLink } from "@/lib/wiki-links";
 
 const fallbackMonospaceCodeFont =
   "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
@@ -30,10 +36,45 @@ export type TableCellInlineNode =
       tag: "strong" | "em" | "code" | "s" | "span";
       className?: string;
       href?: string;
+      wikiTarget?: string;
       children: TableCellInlineNode[];
     };
 
-const tableCellMarkdownParser = markdownParser.configure([GFM, prosemarkMarkdownSyntaxExtensions]);
+const tableCellWikiLinkMarkdownSyntaxExtension: MarkdownConfig = {
+  defineNodes: ["WikiLink", "WikiLinkMark"],
+  parseInline: [
+    {
+      name: "WikiLink",
+      before: "Link",
+      parse: (cx: InlineContext, next: number, pos: number): number => {
+        if (next !== 91 /* [ */ || cx.char(pos + 1) !== 91 /* [ */) return -1;
+
+        for (let end = pos + 2; end < cx.end - 1; end++) {
+          if (cx.char(end) === 92 /* \ */) {
+            end++;
+            continue;
+          }
+          if (cx.char(end) !== 93 /* ] */ || cx.char(end + 1) !== 93 /* ] */) continue;
+
+          return cx.addElement(
+            cx.elt("WikiLink", pos, end + 2, [
+              cx.elt("WikiLinkMark", pos, pos + 2),
+              cx.elt("WikiLinkMark", end, end + 2),
+            ]),
+          );
+        }
+
+        return -1;
+      },
+    },
+  ],
+};
+
+const tableCellMarkdownParser = markdownParser.configure([
+  GFM,
+  prosemarkMarkdownSyntaxExtensions,
+  tableCellWikiLinkMarkdownSyntaxExtension,
+]);
 const defaultHiddenMarkdownMarks = new Set([
   "CodeMark",
   "EmphasisMark",
@@ -216,7 +257,7 @@ function renderMarkdownChildren(
 function markdownElement(
   tag: Extract<TableCellInlineNode, { type: "element" }>["tag"],
   children: TableCellInlineNode[],
-  options: { className?: string; href?: string } = {},
+  options: { className?: string; href?: string; wikiTarget?: string } = {},
 ): TableCellInlineNode[] {
   return [{ type: "element", tag, children, ...options }];
 }
@@ -254,6 +295,17 @@ function renderMarkdownNode(markdown: string, node: SyntaxNode): TableCellInline
     case "Link":
     case "Autolink":
       return renderLink(markdown, node);
+    case "WikiLink": {
+      const rawTarget = markdown.slice(node.from + 2, node.to - 2);
+      return markdownElement(
+        "span",
+        [{ type: "text", text: parseWikiLink(rawTarget).displayText }],
+        {
+          className: "cm-wiki-link",
+          wikiTarget: rawTarget,
+        },
+      );
+    }
     case "URL":
       return markdownElement("span", [{ type: "text", text: markdown.slice(node.from, node.to) }], {
         className: "cm-rendered-link",
@@ -303,6 +355,7 @@ function appendInlineMarkdownNodes(parent: HTMLElement, nodes: TableCellInlineNo
     const child = document.createElement(node.tag);
     if (node.className) child.className = node.className;
     if (node.href) child.dataset.href = node.href;
+    if (node.wikiTarget) child.dataset.wikiTarget = node.wikiTarget;
     appendInlineMarkdownNodes(child, node.children);
     parent.appendChild(child);
   }
