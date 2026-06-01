@@ -39,7 +39,7 @@ const MAIN_WINDOW_LABEL: &str = "main";
 /// routed via `emit_to` so a drop onto window A never triggers window B.
 fn queue_open_event(app: &tauri::AppHandle, label: &str, payload: PendingOpenPayload) {
     if let Some(state) = app.state::<AppState>().get(label) {
-        state.push_pending_open(payload.clone());
+        state.set_pending_open(payload.clone());
     }
     let _ = app.emit_to(label, "open:from-drop", payload);
 }
@@ -105,7 +105,7 @@ pub(crate) fn open_new_workspace_window(
     let label = format!("w-{}", uuid::Uuid::new_v4().simple());
     let state = app.state::<AppState>().get_or_create(&label);
     init_window_settings(app, &state);
-    state.push_pending_open(PendingOpenPayload {
+    state.set_startup_open(PendingOpenPayload {
         workspace: workspace_str,
         file,
     });
@@ -393,13 +393,17 @@ pub fn run() {
             let main_state = app.state::<AppState>().get_or_create(MAIN_WINDOW_LABEL);
             init_window_settings(app.handle(), &main_state);
 
-            // CLI arg → main window's pending-open queue. On cold start the
-            // main window is the one that will host the requested workspace.
-            let args: Vec<String> = std::env::args().collect();
-            if args.len() > 1 {
-                let path = PathBuf::from(&args[1]);
-                if let Some(payload) = resolve_path(&path) {
-                    main_state.push_pending_open(payload);
+            // On macOS, `open -a Writer /path` delivers the path via
+            // RunEvent::Opened, not argv. On Linux/Windows the path
+            // arrives through argv (or the single-instance plugin).
+            #[cfg(not(target_os = "macos"))]
+            {
+                let args: Vec<String> = std::env::args().collect();
+                if args.len() > 1 {
+                    let path = PathBuf::from(&args[1]);
+                    if let Some(payload) = resolve_path(&path) {
+                        main_state.set_startup_open(payload);
+                    }
                 }
             }
 
@@ -476,24 +480,37 @@ pub fn run() {
                 for url in urls {
                     if let Ok(path) = url.to_file_path() {
                         if let Some(payload) = resolve_path(&path) {
-                            // A dock drop isn't associated with a specific
-                            // window — route it to an already-open window
-                            // showing the same workspace, else open a new
-                            // one so the user never loses their current
-                            // editor state.
-                            let existing = _app
-                                .state::<AppState>()
+                            let app_state = _app.state::<AppState>();
+                            let existing = app_state
                                 .find_by_workspace(&PathBuf::from(&payload.workspace));
                             match existing {
                                 Some(label) => {
                                     queue_open_event(_app, &label, payload);
                                 }
                                 None => {
-                                    let _ = open_new_workspace_window(
-                                        _app,
-                                        payload.workspace.clone(),
-                                        payload.file.clone(),
-                                    );
+                                    // If the main webview window doesn't exist
+                                    // yet, this Opened event beat window
+                                    // creation — a cold start. Seed the main
+                                    // window's startup_open so it hydrates onto
+                                    // this workspace when it loads, instead of
+                                    // spawning a second window beside the empty
+                                    // main. `open -a` delivers the path here,
+                                    // not through argv.
+                                    if _app.get_webview_window(MAIN_WINDOW_LABEL).is_none() {
+                                        app_state
+                                            .get_or_create(MAIN_WINDOW_LABEL)
+                                            .set_startup_open(payload);
+                                    } else {
+                                        // Warm start: the app is already running
+                                        // with its main window loaded. Open the
+                                        // workspace in a new window so the user's
+                                        // current editor state is preserved.
+                                        let _ = open_new_workspace_window(
+                                            _app,
+                                            payload.workspace.clone(),
+                                            payload.file.clone(),
+                                        );
+                                    }
                                 }
                             }
                             break;

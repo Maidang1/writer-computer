@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-01
+
+- Fix opening a folder or file from the CLI, Finder, or by dropping onto the dock so it lands in a single window instead of spawning a duplicate empty one on cold start. On macOS the open target arrives via the system open event (not argv), which previously raced window creation; it now seeds the main window's startup open target when that window hasn't been built yet, and opens a new window only when the app is already running with a different workspace.
+- Make the startup open target a single source of truth (`startup_open`) that Rust sets before the webview loads and the client reads once during startup hydration — same lifecycle as settings — so an explicit open no longer restores the previous session's tabs alongside the requested file. Runtime drag-and-drop onto a live window still uses the separate pending-open queue.
+
 ## 2026-05-28
 
 - Animate the sidebar folder caret so it rotates smoothly between collapsed (pointing right) and expanded (pointing down) instead of swapping icons instantly. The caret rotation is now the only animated transition on sidebar rows — the hover background highlight and the icon/label opacity changes apply instantly.

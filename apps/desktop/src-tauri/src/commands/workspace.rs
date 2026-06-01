@@ -226,6 +226,7 @@ pub struct RestoreWorkspaceResponse {
     pub recent_workspaces: Vec<String>,
     pub session: Option<SessionData>,
     pub active_file: Option<FileContent>,
+    pub open_file: Option<String>,
 }
 
 /// Shared workspace-restore body used by both the `restore_workspace` IPC
@@ -300,6 +301,7 @@ pub(crate) async fn build_restore_bundle(
         recent_workspaces,
         session,
         active_file,
+        open_file: None,
     })
 }
 

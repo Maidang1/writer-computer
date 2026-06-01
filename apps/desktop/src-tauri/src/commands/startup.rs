@@ -4,7 +4,6 @@ use crate::commands::workspace::{
 };
 use crate::error::AppError;
 use crate::state::AppState;
-use crate::PendingOpenPayload;
 use serde::Serialize;
 use serde_json::Value;
 use std::path::Path;
@@ -16,14 +15,10 @@ const RESTORE_WORKSPACE_KEY: &str = "window.restore-workspace";
 pub struct StartupState {
     pub settings: Value,
     pub recent_workspaces: Vec<String>,
-    pub pending_open: Option<PendingOpenPayload>,
-    /// Prefetched workspace restore payload. Populated when there is a
-    /// `pending_open` (CLI / drag-drop cold start — bundle is built for that
-    /// workspace) or, failing that, when `window.restore-workspace` is enabled
-    /// and the most-recent recent workspace still exists on disk. When
-    /// present, the frontend hydrates its stores synchronously from this
-    /// bundle so React's first render already has full content — no second
-    /// IPC waterfall, no intermediate "empty shell" frame.
+    /// Single source of truth for what to render on startup. Built from
+    /// either an explicit open (CLI arg / drag-drop — `open_file` is set,
+    /// `session` is `None`) or a workspace restore (`session` is populated,
+    /// `open_file` is `None`). The frontend only looks at this one payload.
     pub restore_bundle: Option<RestoreWorkspaceResponse>,
 }
 
@@ -55,15 +50,14 @@ pub async fn get_startup_state(
     };
 
     let recent_workspaces = load_recent_workspaces(&app).unwrap_or_default();
-    let pending_open = state.pop_pending_open();
+    let startup_open = state.take_startup_open();
 
     // Pick a workspace to prefetch a bundle for so the frontend can hydrate
     // synchronously on first render — no second IPC waterfall, no welcome
-    // screen flash. CLI / drag-drop cold starts get their pending workspace;
-    // otherwise fall back to the recent list (gated on the restore setting).
-    // Secondary windows opened via `open_workspace_in_new_window` follow the
-    // pending-open branch via their pre-seeded queue.
-    let restore_target = if let Some(payload) = &pending_open {
+    // screen flash. startup_open is set during window creation (from CLI
+    // args or open_new_workspace_window) before the webview loads — same
+    // lifecycle as settings. No runtime event touches it.
+    let restore_target = if let Some(payload) = &startup_open {
         Some(payload.workspace.clone())
     } else if restore_enabled {
         recent_workspaces
@@ -74,7 +68,7 @@ pub async fn get_startup_state(
         None
     };
 
-    let restore_bundle = if let Some(path) = restore_target {
+    let mut restore_bundle = if let Some(path) = restore_target {
         match build_restore_bundle(&app, &label, &path).await {
             Ok(bundle) => Some(bundle),
             Err(err) => {
@@ -88,10 +82,20 @@ pub async fn get_startup_state(
         None
     };
 
+    // Fold the explicit open into the bundle so the frontend has a single
+    // source of truth. Strip the saved session (old tabs) — the user asked
+    // for a specific file, not their previous editor state.
+    if let Some(pending) = startup_open {
+        if let Some(ref mut bundle) = restore_bundle {
+            bundle.session = None;
+            bundle.active_file = None;
+            bundle.open_file = pending.file;
+        }
+    }
+
     Ok(StartupState {
         settings,
         recent_workspaces,
-        pending_open,
         restore_bundle,
     })
 }

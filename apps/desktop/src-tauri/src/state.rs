@@ -45,9 +45,14 @@ pub struct WorkspaceState {
     /// window's workspace. Two windows with different workspaces therefore
     /// carry different merged settings without clobbering each other.
     pub settings: RwLock<Option<Settings>>,
-    /// Per-window queue of deferred workspace/file opens (CLI arg at window
-    /// creation, drag-drop onto this window). Drained by the frontend via
-    /// `take_pending_open` once the store is ready.
+    /// Open target set during window creation (from CLI args or
+    /// `open_new_workspace_window`). Read once by `get_startup_state`.
+    /// Follows the same lifecycle as `settings` — set before the webview
+    /// loads, consumed during startup hydration. Runtime events never
+    /// touch this field.
+    pub startup_open: Mutex<Option<PendingOpenPayload>>,
+    /// Runtime-only queue for drag-drop / dock-drop events on a live,
+    /// already-hydrated window. Never read by `get_startup_state`.
     pub pending_open: Mutex<VecDeque<PendingOpenPayload>>,
 }
 
@@ -71,17 +76,24 @@ impl Default for WorkspaceState {
             workspace_epoch: AtomicU64::new(0),
             cancel_index: RwLock::new(Arc::new(AtomicBool::new(false))),
             settings: RwLock::new(None),
+            startup_open: Mutex::new(None),
             pending_open: Mutex::new(VecDeque::new()),
         }
     }
 }
 
 impl WorkspaceState {
-    pub fn push_pending_open(&self, payload: PendingOpenPayload) {
+    pub fn set_startup_open(&self, payload: PendingOpenPayload) {
+        *self.startup_open.lock() = Some(payload);
+    }
+
+    pub fn take_startup_open(&self) -> Option<PendingOpenPayload> {
+        self.startup_open.lock().take()
+    }
+
+    pub fn set_pending_open(&self, payload: PendingOpenPayload) {
         let mut pending = self.pending_open.lock();
-        if pending.back() == Some(&payload) {
-            return;
-        }
+        pending.clear();
         pending.push_back(payload);
     }
 
@@ -90,6 +102,14 @@ impl WorkspaceState {
     }
 
     pub fn has_pending_workspace(&self, path: &Path) -> bool {
+        let has_startup = self
+            .startup_open
+            .lock()
+            .as_ref()
+            .is_some_and(|p| Path::new(&p.workspace) == path);
+        if has_startup {
+            return true;
+        }
         self.pending_open
             .lock()
             .iter()
@@ -209,10 +229,25 @@ mod tests {
     use super::*;
 
     #[test]
+    fn find_by_workspace_matches_startup_open() {
+        let app_state = AppState::new();
+        let window_state = app_state.get_or_create("startup-window");
+        window_state.set_startup_open(PendingOpenPayload {
+            workspace: "/tmp/workspace".to_string(),
+            file: None,
+        });
+
+        assert_eq!(
+            app_state.find_by_workspace(Path::new("/tmp/workspace")),
+            Some("startup-window".to_string())
+        );
+    }
+
+    #[test]
     fn find_by_workspace_matches_pending_open() {
         let app_state = AppState::new();
         let window_state = app_state.get_or_create("pending-window");
-        window_state.push_pending_open(PendingOpenPayload {
+        window_state.set_pending_open(PendingOpenPayload {
             workspace: "/tmp/workspace".to_string(),
             file: None,
         });
