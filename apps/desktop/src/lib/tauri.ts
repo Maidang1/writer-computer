@@ -71,6 +71,7 @@ export interface RestoreWorkspaceResponse {
   recent_workspaces: string[];
   session: SessionData | null;
   active_file: FileContent | null;
+  open_file: string | null;
 }
 
 export function restoreWorkspace(path: string): Promise<RestoreWorkspaceResponse> {
@@ -181,12 +182,6 @@ export function takePendingOpen(): Promise<PendingOpenPayload | null> {
 export interface StartupState {
   settings: Record<string, unknown>;
   recent_workspaces: string[];
-  pending_open: PendingOpenPayload | null;
-  /** Prefetched workspace restore payload. Populated when
-   *  `window.restore-workspace` is enabled, there's no pending open, and the
-   *  most-recent recent workspace still exists on disk. The frontend hydrates
-   *  its stores synchronously from this bundle before the first render, so
-   *  React mounts with full content instead of an empty shell. */
   restore_bundle: RestoreWorkspaceResponse | null;
 }
 

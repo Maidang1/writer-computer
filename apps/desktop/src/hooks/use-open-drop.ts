@@ -84,13 +84,7 @@ let startupReady: Promise<void> = Promise.resolve();
 async function resolveStartup() {
   mark("resolve-start");
 
-  let pendingOpen: PendingOpenPayload | null = null;
-
   try {
-    // Single IPC call returns settings, recents, pending opens, AND the
-    // prefetched workspace restore bundle (when applicable). React's first
-    // render can paint the full editor because everything is already in the
-    // stores by the time we flip the gate.
     mark("ipc:get_startup_state:start");
     const startup = await tauri.getStartupState();
     mark("ipc:get_startup_state:end");
@@ -103,29 +97,11 @@ async function resolveStartup() {
       recentWorkspaces: startup.recent_workspaces,
     });
 
-    pendingOpen = startup.pending_open;
-
     if (startup.restore_bundle) {
       await useWorkspaceStore.getState().restoreFromBundle(startup.restore_bundle);
     }
   } catch (error) {
     console.error("Failed to resolve startup state", error);
-    // Fall through to welcome screen — settings and workspace stores keep
-    // whatever defaults they started with.
-  }
-
-  // Handle pending opens (CLI arg, drag-to-dock) BEFORE flipping the startup
-  // gate. If the bundle above already hydrated the pending workspace,
-  // `handleOpenPayload` short-circuits the workspace open and only opens the
-  // requested file. Either way, by the time `setStartupResolved` flips, the
-  // workspace store is populated, so React's first render is the full
-  // `AppLayout` — no flash of `WelcomeScreen` while awaits resolve.
-  if (pendingOpen) {
-    try {
-      await queueOpenPayload(pendingOpen);
-    } catch (error) {
-      console.error("Failed to handle pending open on startup", error);
-    }
   }
 
   useWorkspaceStore.getState().setStartupResolved();

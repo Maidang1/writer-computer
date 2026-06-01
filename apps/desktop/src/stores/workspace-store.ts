@@ -130,6 +130,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       return;
     }
 
+    if (bundle.open_file) {
+      void useEditorStore.getState().openFile(bundle.open_file);
+      return;
+    }
+
     useEditorStore.getState().ensureLauncherTab();
   },
 

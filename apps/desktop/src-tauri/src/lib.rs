@@ -105,7 +105,7 @@ pub(crate) fn open_new_workspace_window(
     let label = format!("w-{}", uuid::Uuid::new_v4().simple());
     let state = app.state::<AppState>().get_or_create(&label);
     init_window_settings(app, &state);
-    state.push_pending_open(PendingOpenPayload {
+    state.set_startup_open(PendingOpenPayload {
         workspace: workspace_str,
         file,
     });
@@ -393,13 +393,17 @@ pub fn run() {
             let main_state = app.state::<AppState>().get_or_create(MAIN_WINDOW_LABEL);
             init_window_settings(app.handle(), &main_state);
 
-            // CLI arg → main window's pending-open queue. On cold start the
-            // main window is the one that will host the requested workspace.
-            let args: Vec<String> = std::env::args().collect();
-            if args.len() > 1 {
-                let path = PathBuf::from(&args[1]);
-                if let Some(payload) = resolve_path(&path) {
-                    main_state.push_pending_open(payload);
+            // On macOS, `open -a Writer /path` delivers the path via
+            // RunEvent::Opened, not argv. On Linux/Windows the path
+            // arrives through argv (or the single-instance plugin).
+            #[cfg(not(target_os = "macos"))]
+            {
+                let args: Vec<String> = std::env::args().collect();
+                if args.len() > 1 {
+                    let path = PathBuf::from(&args[1]);
+                    if let Some(payload) = resolve_path(&path) {
+                        main_state.set_startup_open(payload);
+                    }
                 }
             }
 
@@ -476,24 +480,46 @@ pub fn run() {
                 for url in urls {
                     if let Ok(path) = url.to_file_path() {
                         if let Some(payload) = resolve_path(&path) {
-                            // A dock drop isn't associated with a specific
-                            // window — route it to an already-open window
-                            // showing the same workspace, else open a new
-                            // one so the user never loses their current
-                            // editor state.
-                            let existing = _app
-                                .state::<AppState>()
-                                .find_by_workspace(&PathBuf::from(&payload.workspace));
+                            let app_state = _app.state::<AppState>();
+                            let existing =
+                                app_state.find_by_workspace(&PathBuf::from(&payload.workspace));
                             match existing {
                                 Some(label) => {
                                     queue_open_event(_app, &label, payload);
                                 }
                                 None => {
-                                    let _ = open_new_workspace_window(
-                                        _app,
-                                        payload.workspace.clone(),
-                                        payload.file.clone(),
-                                    );
+                                    let main_state = app_state.get_or_create(MAIN_WINDOW_LABEL);
+                                    match main_state.try_set_startup_open(payload) {
+                                        Ok(()) => {}
+                                        Err(payload) => {
+                                            let main_visible = _app
+                                                .get_webview_window(MAIN_WINDOW_LABEL)
+                                                .is_some_and(|window| {
+                                                    window.is_visible().unwrap_or(false)
+                                                });
+
+                                            if main_visible {
+                                                // Warm start: the app is already
+                                                // running with its main window
+                                                // visible. Open the workspace in a
+                                                // new window so the user's current
+                                                // editor state is preserved.
+                                                let _ = open_new_workspace_window(
+                                                    _app,
+                                                    payload.workspace.clone(),
+                                                    payload.file.clone(),
+                                                );
+                                            } else {
+                                                // Startup state has already been
+                                                // read, but the hidden main window
+                                                // is still hydrating. Queue the
+                                                // open for the startup drainer
+                                                // instead of spawning a duplicate
+                                                // empty main-adjacent window.
+                                                queue_open_event(_app, MAIN_WINDOW_LABEL, payload);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             break;
