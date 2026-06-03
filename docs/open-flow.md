@@ -75,6 +75,20 @@ On Linux/Windows the path arrives through argv instead; `setup()` reads
 `std::env::args()[1]` and calls `set_startup_open` directly (gated behind
 `#[cfg(not(target_os = "macos"))]`).
 
+### Dev Compact Launch
+
+Debug builds also support a dev-only compact launch hook:
+
+```sh
+WRITER_DEV_COMPACT_FILE=/absolute/path/to/note.md vp run desktop#dev
+```
+
+The variable is read during `setup()` before `get_startup_state`, resolved
+through the same shared path classifier, and then seeded into `startup_open`.
+It must point to a `.md` or `.markdown` file; directories and unsupported files
+are ignored with a stderr message. This hook is gated behind
+`debug_assertions`, so release builds do not expose it.
+
 ## 2. Runtime Drag-and-Drop onto a Window
 
 When the app is already running and the user drops a file/folder onto a window,

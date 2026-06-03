@@ -33,6 +33,39 @@ const CLI_MENU_UNINSTALL_LABEL: &str = "Uninstall 'writer' Command Line Tool…"
 struct CliMenuItem(MenuItem<tauri::Wry>);
 
 const MAIN_WINDOW_LABEL: &str = "main";
+#[cfg(debug_assertions)]
+const DEV_COMPACT_FILE_ENV: &str = "WRITER_DEV_COMPACT_FILE";
+
+#[cfg(debug_assertions)]
+fn dev_compact_open_payload() -> Option<PendingOpenPayload> {
+    let raw_path = std::env::var_os(DEV_COMPACT_FILE_ENV)?;
+    let path = PathBuf::from(raw_path);
+    let path = if path.is_absolute() {
+        path
+    } else {
+        std::env::current_dir()
+            .unwrap_or_else(|_| PathBuf::from("."))
+            .join(path)
+    };
+
+    let Some(payload) = resolve_path(&path) else {
+        eprintln!(
+            "{DEV_COMPACT_FILE_ENV} ignored: expected a markdown file, got {}",
+            path.display()
+        );
+        return None;
+    };
+
+    if payload.file.is_none() {
+        eprintln!(
+            "{DEV_COMPACT_FILE_ENV} ignored: expected a markdown file, got directory {}",
+            path.display()
+        );
+        return None;
+    }
+
+    Some(payload)
+}
 
 /// Push an open payload into the target window's pending-open queue and emit
 /// the notification so the frontend in that window drains it. Events are
@@ -401,16 +434,30 @@ pub fn run() {
             let main_state = app.state::<AppState>().get_or_create(MAIN_WINDOW_LABEL);
             init_window_settings(app.handle(), &main_state);
 
+            #[cfg(debug_assertions)]
+            let dev_compact_open_seeded = dev_compact_open_payload()
+                .map(|payload| {
+                    main_state.set_startup_open(payload);
+                    true
+                })
+                .unwrap_or(false);
+            #[cfg(not(debug_assertions))]
+            let dev_compact_open_seeded = false;
+            #[cfg(target_os = "macos")]
+            let _ = dev_compact_open_seeded;
+
             // On macOS, `open -a Writer /path` delivers the path via
             // RunEvent::Opened, not argv. On Linux/Windows the path
             // arrives through argv (or the single-instance plugin).
             #[cfg(not(target_os = "macos"))]
             {
-                let args: Vec<String> = std::env::args().collect();
-                if args.len() > 1 {
-                    let path = PathBuf::from(&args[1]);
-                    if let Some(payload) = resolve_path(&path) {
-                        main_state.set_startup_open(payload);
+                if !dev_compact_open_seeded {
+                    let args: Vec<String> = std::env::args().collect();
+                    if args.len() > 1 {
+                        let path = PathBuf::from(&args[1]);
+                        if let Some(payload) = resolve_path(&path) {
+                            main_state.set_startup_open(payload);
+                        }
                     }
                 }
             }
