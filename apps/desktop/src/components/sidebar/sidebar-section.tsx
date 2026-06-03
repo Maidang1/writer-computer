@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 interface SidebarSectionProps {
   title: string;
@@ -6,12 +6,35 @@ interface SidebarSectionProps {
 }
 
 export function SidebarSection({ title, children }: SidebarSectionProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <section className="flex flex-col gap-1" aria-label={title}>
-      <div className="pl-3 pr-2 text-[11px] font-medium tracking-[0.02em] text-[var(--text-muted)] opacity-60">
-        {title}
-      </div>
-      {children}
+      <button
+        type="button"
+        aria-expanded={!isCollapsed}
+        onClick={() => setIsCollapsed((collapsed) => !collapsed)}
+        className="group flex h-5 items-center gap-1 pl-3 pr-2 text-left text-[11px] font-medium tracking-[0.02em] text-[var(--text-muted)] opacity-60 hover:opacity-100"
+      >
+        <span>{title}</span>
+        <span
+          aria-hidden="true"
+          className={`flex h-3 w-3 items-center justify-center transition-transform duration-150 ease-out ${
+            isCollapsed ? "" : "rotate-90"
+          }`}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M4.5 3.5L7.5 6L4.5 8.5"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      </button>
+      {!isCollapsed && children}
     </section>
   );
 }
