@@ -217,8 +217,8 @@ export function CompactFileLayout() {
             {isPickerMounted && (
               <div className="compact-picker-card-mask absolute inset-0 z-10">
                 <div
-                  className={`transition-opacity duration-150 ease-out ${
-                    isNavigatorOpen ? "opacity-100" : "opacity-0"
+                  className={`transform-gpu transition-[opacity,transform] duration-150 ease-out ${
+                    isNavigatorOpen ? "translate-y-0 opacity-100" : "-translate-y-[30px] opacity-0"
                   }`}
                   style={pickerNavigatorStyle}
                 >
