@@ -2,13 +2,14 @@ import { useCallback, useState } from "react";
 import { Popover } from "@base-ui/react/popover";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import { motion } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import { EditorArea } from "./editor-area";
 import { SidebarNavigator } from "./sidebar/sidebar-navigator";
 import { ScrollFade } from "@/components/scroll-fade";
 import { useActiveFilePath, useOpenCompactFile, useOpenFiles } from "@/hooks/use-tabs";
 import { getFileName } from "@/lib/paths";
 
+const PICKER_SURFACE_LAYOUT_ID = "compact-file-picker-surface";
 const pickerTransition = { duration: 0.2, ease: "circOut" } as const;
 
 export function CompactFileLayout() {
@@ -40,31 +41,37 @@ export function CompactFileLayout() {
           paddingBlock: "var(--chrome-control-padding)",
         }}
       >
-        <Popover.Root open={isNavigatorOpen} onOpenChange={(open) => setIsNavigatorOpen(open)}>
-          <Popover.Trigger
-            aria-label="Open file navigator"
-            className="group relative inline-flex h-[var(--chrome-control-height)] max-w-[min(240px,calc(100vw-40px))] items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-3 text-[13px] text-[var(--fg-base)]"
-          >
-            <div className="pointer-events-none absolute inset-0 rounded-lg bg-transparent transition-colors group-hover:bg-[var(--surface-input)]" />
-            <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
-              {title}
-            </span>
-            <span
-              aria-hidden="true"
-              className={`relative shrink-0 text-[var(--text-icon-muted)] transition-transform duration-150 ease-out ${
-                isNavigatorOpen ? "rotate-180" : ""
-              }`}
+        <LayoutGroup>
+          <Popover.Root open={isNavigatorOpen} onOpenChange={(open) => setIsNavigatorOpen(open)}>
+            <Popover.Trigger
+              aria-label="Open file navigator"
+              className="group relative inline-flex h-[var(--chrome-control-height)] max-w-[min(240px,calc(100vw-40px))] items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-3 text-[13px] text-[var(--fg-base)]"
             >
-              <HugeiconsIcon
-                icon={ArrowDown01Icon}
-                size={16}
-                color="currentColor"
-                strokeWidth={2}
-              />
-            </span>
-          </Popover.Trigger>
+              {!isNavigatorOpen && (
+                <motion.div
+                  layoutId={PICKER_SURFACE_LAYOUT_ID}
+                  transition={pickerTransition}
+                  className="pointer-events-none absolute inset-0 rounded-lg bg-transparent transition-colors group-hover:bg-[var(--surface-input)]"
+                />
+              )}
+              <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                {title}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`relative shrink-0 text-[var(--text-icon-muted)] transition-transform duration-150 ease-out ${
+                  isNavigatorOpen ? "rotate-180" : ""
+                }`}
+              >
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  size={16}
+                  color="currentColor"
+                  strokeWidth={2}
+                />
+              </span>
+            </Popover.Trigger>
 
-          <Popover.Portal>
             <Popover.Positioner side="bottom" align="center" sideOffset={8} className="z-50">
               <Popover.Popup
                 initialFocus={false}
@@ -73,8 +80,7 @@ export function CompactFileLayout() {
               >
                 <motion.div
                   aria-hidden="true"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  layoutId={PICKER_SURFACE_LAYOUT_ID}
                   transition={pickerTransition}
                   className="surface-card pointer-events-none absolute inset-0 rounded-xl"
                 />
@@ -90,8 +96,8 @@ export function CompactFileLayout() {
                 </div>
               </Popover.Popup>
             </Popover.Positioner>
-          </Popover.Portal>
-        </Popover.Root>
+          </Popover.Root>
+        </LayoutGroup>
       </div>
 
       <div className="relative h-full min-w-0 bg-bg">
