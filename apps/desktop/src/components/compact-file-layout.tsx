@@ -199,14 +199,14 @@ export function CompactFileLayout() {
       >
         <div
           ref={pickerRootRef}
-          className="group pointer-events-auto relative isolate flex w-[min(360px,calc(100vw-40px))] justify-center"
+          className="group/compact-picker pointer-events-auto relative isolate flex w-[min(360px,calc(100vw-40px))] justify-center"
         >
           <div
             id={isPickerMounted ? PICKER_POPUP_ID : undefined}
             role={isPickerMounted ? "dialog" : undefined}
             aria-label={isPickerMounted ? "File navigator" : undefined}
             className={`compact-picker-shell absolute left-0 top-0 z-0 ${
-              isPickerMounted ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              isPickerMounted ? "opacity-100" : "opacity-0 group-hover/compact-picker:opacity-100"
             }`}
             style={{
               ...pickerShellStyle,
