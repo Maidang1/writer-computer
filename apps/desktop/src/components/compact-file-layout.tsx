@@ -8,7 +8,8 @@ import { useActiveFilePath, useOpenCompactFile, useOpenFiles } from "@/hooks/use
 import { getFileName } from "@/lib/paths";
 
 const PICKER_POPUP_ID = "compact-file-picker-popup";
-const PICKER_ANIMATION_MS = 200;
+const PICKER_ANIMATION_MS = 240;
+const PICKER_ANIMATION_EASING = "cubic-bezier(0.32, 0, 0.2, 1)";
 const PICKER_GAP = "8px";
 const PICKER_OPEN_TOP = `calc(var(--chrome-control-height) + ${PICKER_GAP})`;
 const PICKER_OPEN_HEIGHT = "min(560px, calc(100vh - 96px))";
@@ -150,10 +151,12 @@ export function CompactFileLayout() {
           {isPickerMounted && (
             <div
               aria-hidden="true"
-              className="surface-card pointer-events-none absolute left-0 top-0 z-0 w-full overflow-hidden rounded-xl transition-[clip-path] duration-200 ease-out"
+              className="surface-card pointer-events-none absolute left-0 top-0 z-0 w-full overflow-hidden rounded-xl transition-[clip-path]"
               style={{
                 height: PICKER_SHELL_HEIGHT,
                 clipPath: pickerClipPath,
+                transitionDuration: `${PICKER_ANIMATION_MS}ms`,
+                transitionTimingFunction: PICKER_ANIMATION_EASING,
                 borderColor: "transparent",
                 boxShadow: "none",
               }}
