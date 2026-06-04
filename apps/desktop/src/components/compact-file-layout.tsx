@@ -51,7 +51,7 @@ export function CompactFileLayout() {
                 <motion.div
                   layoutId={PICKER_SURFACE_LAYOUT_ID}
                   transition={pickerTransition}
-                  className="absolute inset-0 rounded-lg bg-transparent transition-colors group-hover:bg-[var(--surface-input)]"
+                  className="pointer-events-none absolute inset-0 rounded-lg bg-transparent transition-colors group-hover:bg-[var(--surface-input)]"
                 />
               )}
               <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -77,12 +77,14 @@ export function CompactFileLayout() {
                 <Popover.Popup
                   initialFocus={false}
                   finalFocus={false}
-                  render={
-                    <motion.div layoutId={PICKER_SURFACE_LAYOUT_ID} transition={pickerTransition} />
-                  }
-                  className="surface-card relative w-[min(360px,calc(100vw-40px))] overflow-hidden rounded-xl outline-none"
+                  className="relative w-[min(360px,calc(100vw-40px))] rounded-xl outline-none"
                 >
-                  <motion.div layout="size" transition={pickerTransition}>
+                  <motion.div
+                    layoutId={PICKER_SURFACE_LAYOUT_ID}
+                    transition={pickerTransition}
+                    className="surface-card pointer-events-none absolute inset-0 rounded-xl"
+                  />
+                  <div className="relative overflow-hidden rounded-xl">
                     <ScrollFade className="max-h-[min(70vh,560px)] overflow-y-auto px-2 py-3 scrollbar-none">
                       <SidebarNavigator
                         openFile={handleOpenFile}
@@ -91,7 +93,7 @@ export function CompactFileLayout() {
                         className="flex flex-col gap-4"
                       />
                     </ScrollFade>
-                  </motion.div>
+                  </div>
                 </Popover.Popup>
               </Popover.Positioner>
             </Popover.Portal>
