@@ -12,9 +12,15 @@ const PICKER_ANIMATION_MS = 240;
 const PICKER_ANIMATION_EASING = "cubic-bezier(0.32, 0, 0.2, 1)";
 const PICKER_GAP = "8px";
 const PICKER_OPEN_TOP = `calc(var(--chrome-control-height) + ${PICKER_GAP})`;
-const PICKER_OPEN_HEIGHT = "min(560px, calc(100vh - 96px))";
-const PICKER_SHELL_HEIGHT = `calc(var(--chrome-control-height) + ${PICKER_GAP} + ${PICKER_OPEN_HEIGHT})`;
 const PICKER_OPEN_CLIP_PATH = `inset(${PICKER_OPEN_TOP} 0 0 0 round 12px)`;
+const PICKER_MAX_OPEN_HEIGHT = 560;
+const PICKER_VIEWPORT_HEIGHT_OFFSET = 96;
+const FALLBACK_PICKER_METRICS = {
+  triggerWidth: 120,
+  triggerHeight: 32,
+  rootWidth: 360,
+  openHeight: 560,
+};
 
 export function CompactFileLayout() {
   const activeFilePath = useActiveFilePath();
@@ -22,7 +28,7 @@ export function CompactFileLayout() {
   const openCompactFile = useOpenCompactFile();
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const [isPickerMounted, setIsPickerMounted] = useState(false);
-  const [triggerWidth, setTriggerWidth] = useState(120);
+  const [pickerMetrics, setPickerMetrics] = useState(FALLBACK_PICKER_METRICS);
   const pickerRootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const openFrameRef = useRef<number | null>(null);
@@ -40,7 +46,17 @@ export function CompactFileLayout() {
     if (openFrameRef.current) {
       window.cancelAnimationFrame(openFrameRef.current);
     }
-    setTriggerWidth(Math.ceil(triggerRef.current?.getBoundingClientRect().width ?? 120));
+    const triggerRect = triggerRef.current?.getBoundingClientRect();
+    const rootRect = pickerRootRef.current?.getBoundingClientRect();
+    setPickerMetrics({
+      triggerWidth: Math.ceil(triggerRect?.width ?? FALLBACK_PICKER_METRICS.triggerWidth),
+      triggerHeight: Math.ceil(triggerRect?.height ?? FALLBACK_PICKER_METRICS.triggerHeight),
+      rootWidth: Math.ceil(rootRect?.width ?? FALLBACK_PICKER_METRICS.rootWidth),
+      openHeight: Math.max(
+        FALLBACK_PICKER_METRICS.triggerHeight,
+        Math.min(PICKER_MAX_OPEN_HEIGHT, window.innerHeight - PICKER_VIEWPORT_HEIGHT_OFFSET),
+      ),
+    });
     setIsPickerMounted(true);
     openFrameRef.current = window.requestAnimationFrame(() => {
       openFrameRef.current = null;
@@ -97,7 +113,14 @@ export function CompactFileLayout() {
 
   const pickerClipPath = isNavigatorOpen
     ? PICKER_OPEN_CLIP_PATH
-    : `inset(0 calc((100% - ${triggerWidth}px) / 2) calc(100% - var(--chrome-control-height)) calc((100% - ${triggerWidth}px) / 2) round 8px)`;
+    : `inset(0 calc((100% - ${pickerMetrics.triggerWidth}px) / 2) calc(100% - ${pickerMetrics.triggerHeight}px) calc((100% - ${pickerMetrics.triggerWidth}px) / 2) round 8px)`;
+  const pickerOpenHeight = `${pickerMetrics.openHeight}px`;
+  const pickerShellHeight = `calc(var(--chrome-control-height) + ${PICKER_GAP} + ${pickerOpenHeight})`;
+  const pickerBorderScaleX = Math.max(0.01, pickerMetrics.triggerWidth / pickerMetrics.rootWidth);
+  const pickerBorderScaleY = Math.max(0.01, pickerMetrics.triggerHeight / pickerMetrics.openHeight);
+  const pickerBorderTransform = isNavigatorOpen
+    ? "scale(1, 1)"
+    : `scale(${pickerBorderScaleX}, ${pickerBorderScaleY})`;
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-transparent text-text-primary">
@@ -128,13 +151,7 @@ export function CompactFileLayout() {
             className="group relative z-30 inline-flex h-[var(--chrome-control-height)] max-w-[240px] items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-3 font-[inherit] text-[13px] text-[var(--fg-base)]"
           >
             {!isPickerMounted && (
-              <div
-                className="surface-card pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100"
-                style={{
-                  borderColor: "transparent",
-                  boxShadow: "none",
-                }}
-              />
+              <div className="compact-picker-surface pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100" />
             )}
             <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
               {title}
@@ -157,14 +174,12 @@ export function CompactFileLayout() {
           {isPickerMounted && (
             <div
               aria-hidden="true"
-              className="surface-card pointer-events-none absolute left-0 top-0 z-0 w-full overflow-hidden rounded-xl transition-[clip-path]"
+              className="compact-picker-surface pointer-events-none absolute left-0 top-0 z-0 w-full overflow-hidden rounded-xl transition-[clip-path]"
               style={{
-                height: PICKER_SHELL_HEIGHT,
+                height: pickerShellHeight,
                 clipPath: pickerClipPath,
                 transitionDuration: `${PICKER_ANIMATION_MS}ms`,
                 transitionTimingFunction: PICKER_ANIMATION_EASING,
-                borderColor: "transparent",
-                boxShadow: "none",
               }}
             />
           )}
@@ -172,14 +187,17 @@ export function CompactFileLayout() {
           {isPickerMounted && (
             <div
               aria-hidden="true"
-              className={`pointer-events-none absolute left-0 z-10 w-full rounded-xl border border-[var(--line-subtler)] transition-opacity duration-100 ease-out ${
-                isNavigatorOpen ? "opacity-100" : "opacity-0"
-              }`}
+              className="pointer-events-none absolute left-0 z-10 w-full rounded-xl border border-[var(--line-subtler)] transition-[top,transform,box-shadow]"
               style={{
-                top: PICKER_OPEN_TOP,
-                height: PICKER_OPEN_HEIGHT,
-                transitionDelay: isNavigatorOpen ? `${PICKER_ANIMATION_MS}ms` : "0ms",
-                boxShadow: "0 15px 35px rgba(0, 0, 0, 0.15)",
+                top: isNavigatorOpen ? PICKER_OPEN_TOP : 0,
+                height: pickerOpenHeight,
+                transform: pickerBorderTransform,
+                transformOrigin: "top center",
+                transitionDuration: `${PICKER_ANIMATION_MS}ms`,
+                transitionTimingFunction: PICKER_ANIMATION_EASING,
+                boxShadow: isNavigatorOpen
+                  ? "0 15px 35px rgba(0, 0, 0, 0.15)"
+                  : "0 0 0 rgba(0, 0, 0, 0)",
               }}
             />
           )}
@@ -192,7 +210,7 @@ export function CompactFileLayout() {
               className="absolute left-0 z-20 w-full rounded-xl outline-none"
               style={{
                 top: PICKER_OPEN_TOP,
-                height: PICKER_OPEN_HEIGHT,
+                height: pickerOpenHeight,
                 pointerEvents: isNavigatorOpen ? "auto" : "none",
               }}
             >

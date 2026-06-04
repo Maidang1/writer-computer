@@ -239,6 +239,23 @@ input {
   pointer-events: none;
 }
 
+.compact-picker-surface {
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  isolation: isolate;
+}
+
+.compact-picker-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg-base) 55%, transparent);
+  z-index: -1;
+  pointer-events: none;
+}
+
 /* CodeMirror autocomplete tooltip (wiki-link suggestions). Mirrors the
    surface-card chrome but can't share the rule directly because
    `--surface-card` is set to `transparent` in light mode (so settings-panel
