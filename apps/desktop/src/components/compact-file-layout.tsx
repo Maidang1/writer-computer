@@ -59,14 +59,17 @@ export function CompactFileLayout() {
         style={{ height: "var(--chrome-drag-height)" }}
       />
       <div
-        className="pointer-events-auto absolute left-1/2 top-0 z-50 flex -translate-x-1/2 items-center"
+        className="pointer-events-none absolute inset-x-0 top-0 z-50 flex justify-center"
         style={{
           height: "calc(var(--chrome-control-height) + var(--chrome-control-padding) * 2)",
           paddingBlock: "var(--chrome-control-padding)",
         }}
       >
         <LayoutGroup>
-          <div ref={pickerRootRef} className="relative flex justify-center">
+          <div
+            ref={pickerRootRef}
+            className="pointer-events-auto relative flex w-[min(360px,calc(100vw-40px))] justify-center"
+          >
             <button
               type="button"
               aria-label="Open file navigator"
@@ -74,7 +77,7 @@ export function CompactFileLayout() {
               aria-controls={isNavigatorOpen ? PICKER_POPUP_ID : undefined}
               aria-expanded={isNavigatorOpen}
               onClick={() => setIsNavigatorOpen((open) => !open)}
-              className="group relative inline-flex h-[var(--chrome-control-height)] max-w-[min(240px,calc(100vw-40px))] items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-3 font-[inherit] text-[13px] text-[var(--fg-base)]"
+              className="group relative inline-flex h-[var(--chrome-control-height)] max-w-[240px] items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-3 font-[inherit] text-[13px] text-[var(--fg-base)]"
             >
               {!isNavigatorOpen && (
                 <motion.div
@@ -106,7 +109,7 @@ export function CompactFileLayout() {
                 id={PICKER_POPUP_ID}
                 role="dialog"
                 aria-label="File navigator"
-                className="absolute left-1/2 top-full z-50 mt-2 w-[min(360px,calc(100vw-40px))] -translate-x-1/2 rounded-xl outline-none"
+                className="absolute top-full z-50 mt-2 w-full rounded-xl outline-none"
               >
                 <motion.div
                   aria-hidden="true"
