@@ -10,9 +10,10 @@ import { getFileName } from "@/lib/paths";
 const PICKER_POPUP_ID = "compact-file-picker-popup";
 const PICKER_ANIMATION_MS = 200;
 const PICKER_GAP = "8px";
+const PICKER_OPEN_TOP = `calc(var(--chrome-control-height) + ${PICKER_GAP})`;
 const PICKER_OPEN_HEIGHT = "min(560px, calc(100vh - 96px))";
 const PICKER_SHELL_HEIGHT = `calc(var(--chrome-control-height) + ${PICKER_GAP} + ${PICKER_OPEN_HEIGHT})`;
-const PICKER_OPEN_CLIP_PATH = `inset(calc(var(--chrome-control-height) + ${PICKER_GAP}) 0 0 0 round 12px)`;
+const PICKER_OPEN_CLIP_PATH = `inset(${PICKER_OPEN_TOP} 0 0 0 round 12px)`;
 
 export function CompactFileLayout() {
   const activeFilePath = useActiveFilePath();
@@ -153,6 +154,22 @@ export function CompactFileLayout() {
               style={{
                 height: PICKER_SHELL_HEIGHT,
                 clipPath: pickerClipPath,
+                borderColor: "transparent",
+                boxShadow: "none",
+              }}
+            />
+          )}
+
+          {isPickerMounted && (
+            <div
+              aria-hidden="true"
+              className={`pointer-events-none absolute left-0 z-[45] w-full rounded-xl border border-[var(--line-subtler)] transition-opacity duration-100 ease-out ${
+                isNavigatorOpen ? "opacity-100 delay-100" : "opacity-0"
+              }`}
+              style={{
+                top: PICKER_OPEN_TOP,
+                height: PICKER_OPEN_HEIGHT,
+                boxShadow: "0 15px 35px rgba(0, 0, 0, 0.15)",
               }}
             />
           )}
@@ -164,7 +181,7 @@ export function CompactFileLayout() {
               aria-label="File navigator"
               className="absolute left-0 z-50 w-full rounded-xl outline-none"
               style={{
-                top: `calc(var(--chrome-control-height) + ${PICKER_GAP})`,
+                top: PICKER_OPEN_TOP,
                 height: PICKER_OPEN_HEIGHT,
                 pointerEvents: isNavigatorOpen ? "auto" : "none",
               }}
