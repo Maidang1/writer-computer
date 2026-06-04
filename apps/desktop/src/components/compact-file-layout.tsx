@@ -164,11 +164,12 @@ export function CompactFileLayout() {
             <div
               aria-hidden="true"
               className={`pointer-events-none absolute left-0 z-10 w-full rounded-xl border border-[var(--line-subtler)] transition-opacity duration-100 ease-out ${
-                isNavigatorOpen ? "opacity-100 delay-100" : "opacity-0"
+                isNavigatorOpen ? "opacity-100" : "opacity-0"
               }`}
               style={{
                 top: PICKER_OPEN_TOP,
                 height: PICKER_OPEN_HEIGHT,
+                transitionDelay: isNavigatorOpen ? `${PICKER_ANIMATION_MS}ms` : "0ms",
                 boxShadow: "0 15px 35px rgba(0, 0, 0, 0.15)",
               }}
             />
