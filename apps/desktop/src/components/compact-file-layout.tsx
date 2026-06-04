@@ -205,9 +205,6 @@ export function CompactFileLayout() {
                 className={`relative z-10 h-full transition-opacity duration-100 ease-out ${
                   isNavigatorOpen ? "opacity-100" : "opacity-0"
                 }`}
-                style={{
-                  transitionDelay: isNavigatorOpen ? `${PICKER_ANIMATION_MS}ms` : "0ms",
-                }}
               >
                 <ScrollFade className="h-full overflow-y-auto px-2 py-3 scrollbar-none">
                   <SidebarNavigator
