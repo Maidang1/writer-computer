@@ -45,6 +45,7 @@ export function CompactFileLayout() {
   const pickerRootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const pickerFrameRef = useRef<HTMLDivElement>(null);
+  const pickerShadowRef = useRef<HTMLDivElement>(null);
   const pickerListRef = useRef<HTMLDivElement>(null);
   const pickerContentScaleRef = useRef<HTMLDivElement>(null);
   const pickerBorderRef = useRef<HTMLDivElement>(null);
@@ -217,17 +218,19 @@ export function CompactFileLayout() {
 
   useLayoutEffect(() => {
     const frame = pickerFrameRef.current;
+    const shadow = pickerShadowRef.current;
     const contentScale = pickerContentScaleRef.current;
     const border = pickerBorderRef.current;
-    if (!frame || !contentScale || !border) return;
+    if (!frame || !shadow || !contentScale || !border) return;
 
     const previousGeometry = currentPickerGeometryRef.current;
     if (!previousGeometry) {
-      applyPickerFrameGeometry(frame, contentScale, border, pickerFrameGeometry);
+      applyPickerFrameGeometry(frame, shadow, contentScale, border, pickerFrameGeometry);
       currentPickerGeometryRef.current = pickerFrameGeometry;
       return;
     }
     const frameElement = frame;
+    const shadowElement = shadow;
     const contentScaleElement = contentScale;
     const borderElement = border;
     const fromGeometry = previousGeometry;
@@ -247,7 +250,13 @@ export function CompactFileLayout() {
         pickerFrameGeometry,
         easedProgress,
       );
-      applyPickerFrameGeometry(frameElement, contentScaleElement, borderElement, nextGeometry);
+      applyPickerFrameGeometry(
+        frameElement,
+        shadowElement,
+        contentScaleElement,
+        borderElement,
+        nextGeometry,
+      );
       currentPickerGeometryRef.current = nextGeometry;
 
       if (progress < 1) {
@@ -256,6 +265,7 @@ export function CompactFileLayout() {
         pickerAnimationFrameRef.current = null;
         applyPickerFrameGeometry(
           frameElement,
+          shadowElement,
           contentScaleElement,
           borderElement,
           pickerFrameGeometry,
@@ -311,6 +321,12 @@ export function CompactFileLayout() {
               pointerEvents: isNavigatorOpen ? "auto" : "none",
             }}
           >
+            <div
+              ref={pickerShadowRef}
+              aria-hidden="true"
+              className="compact-picker-card-shadow absolute left-0 top-0"
+              style={pickerFrameStyle}
+            />
             <div
               ref={pickerFrameRef}
               className="compact-picker-card-frame absolute left-0 top-0"
@@ -393,6 +409,7 @@ export function CompactFileLayout() {
 
 function applyPickerFrameGeometry(
   frame: HTMLDivElement,
+  shadow: HTMLDivElement,
   contentScale: HTMLDivElement,
   border: HTMLDivElement,
   geometry: PickerFrameGeometry,
@@ -401,6 +418,8 @@ function applyPickerFrameGeometry(
   frame.style.borderRadius = `${geometry.radius / geometry.scaleX}px / ${
     geometry.radius / geometry.scaleY
   }px`;
+  shadow.style.transform = frame.style.transform;
+  shadow.style.borderRadius = frame.style.borderRadius;
   contentScale.style.transform = `scale(${1 / geometry.scaleX}, ${1 / geometry.scaleY})`;
   border.style.borderTopWidth = `${1 / geometry.scaleY}px`;
   border.style.borderRightWidth = `${1 / geometry.scaleX}px`;

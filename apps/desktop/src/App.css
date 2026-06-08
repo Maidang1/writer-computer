@@ -254,7 +254,6 @@ input {
 
 .compact-picker-card-frame {
   border-radius: var(--compact-picker-frame-radius-x) / var(--compact-picker-frame-radius-y);
-  box-shadow: none;
   contain: paint;
   isolation: isolate;
   overflow: hidden;
@@ -262,8 +261,18 @@ input {
   will-change: border-radius, transform;
 }
 
-[data-theme="light"] .compact-picker-shell[data-state="open"] .compact-picker-card-frame {
+.compact-picker-card-shadow {
+  border-radius: var(--compact-picker-frame-radius-x) / var(--compact-picker-frame-radius-y);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: top left;
+  transition: opacity 260ms cubic-bezier(0.32, 0, 0.2, 1);
+  will-change: opacity, transform, border-radius;
+}
+
+[data-theme="light"] .compact-picker-shell[data-state="open"] .compact-picker-card-shadow {
+  opacity: 1;
 }
 
 .compact-picker-card-surface {

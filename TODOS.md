@@ -6,6 +6,7 @@
 
 ## Done
 
+- Compact picker shadow fade — move the light-mode popover shadow to an opacity-animated layer so it fades out on close.
 - Compact picker light trigger fill — make the light-mode compact trigger use a subtle gray tint instead of a near-white fill.
 - Compact picker light shadow — add a subtle floating-card-style shadow to the compact picker popover in light mode.
 - Compact picker timing — slow the picker morph and related content fades to 260ms while keeping the previous easing curve.
