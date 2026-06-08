@@ -254,11 +254,16 @@ input {
 
 .compact-picker-card-frame {
   border-radius: var(--compact-picker-frame-radius-x) / var(--compact-picker-frame-radius-y);
+  box-shadow: none;
   contain: paint;
   isolation: isolate;
   overflow: hidden;
   transform-origin: top left;
   will-change: border-radius, transform;
+}
+
+[data-theme="light"] .compact-picker-shell[data-state="open"] .compact-picker-card-frame {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .compact-picker-card-surface {

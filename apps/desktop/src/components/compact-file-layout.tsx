@@ -302,6 +302,7 @@ export function CompactFileLayout() {
             id={isPickerMounted ? PICKER_POPUP_ID : undefined}
             role={isPickerMounted ? "dialog" : undefined}
             aria-label={isPickerMounted ? "File navigator" : undefined}
+            data-state={isNavigatorOpen ? "open" : "closed"}
             className={`compact-picker-shell absolute left-0 top-0 z-0 ${
               isPickerMounted ? "opacity-100" : "opacity-0 group-hover/compact-picker:opacity-100"
             }`}
