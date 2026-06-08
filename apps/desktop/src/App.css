@@ -263,7 +263,7 @@ input {
 }
 
 [data-theme="light"] .compact-picker-shell[data-state="open"] .compact-picker-card-frame {
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .compact-picker-card-surface {

@@ -7,7 +7,7 @@
 ## Done
 
 - Compact picker light trigger fill — make the light-mode compact trigger use a subtle gray tint instead of a near-white fill.
-- Compact picker light shadow — add the shared floating-card shadow to the compact picker popover in light mode.
+- Compact picker light shadow — add a subtle floating-card-style shadow to the compact picker popover in light mode.
 - Compact picker timing — slow the picker morph and related content fades to 260ms while keeping the previous easing curve.
 - Compact picker height cap — raise the compact navigator popover max height to 420px while keeping content-sized wrapping below the cap.
 - Compact picker center anchoring — counter-scale the picker content from the horizontal center so the navigator stays centered while the popover expands.
