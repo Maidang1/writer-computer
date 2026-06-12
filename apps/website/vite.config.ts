@@ -1,7 +1,9 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { devtools } from "@tanstack/devtools-vite";
 
 const tauriConfPath = fileURLToPath(
   new URL("../desktop/src-tauri/tauri.conf.json", import.meta.url),
@@ -17,7 +19,16 @@ const RELEASES_URL = `https://github.com/${RELEASE_REPO}/releases/tag/v${VERSION
 const REPO_URL = "https://github.com/joelbqz/writer-computer";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    devtools(),
+    tanstackStart({
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+      },
+    }),
+    react(),
+  ],
   server: {
     port: 5173,
   },
