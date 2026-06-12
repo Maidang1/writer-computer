@@ -6,7 +6,7 @@ The marketing website lives in `apps/website/` and deploys to the existing Cloud
 
 - Worker config: `wrangler.jsonc`
 - Worker name: `writer-website`
-- Static assets directory: `apps/website/dist`
+- Static assets directory: `apps/website/dist/client`
 - Production URL: `https://writer.computer`
 
 The Worker name in Cloudflare must match `name` in `wrangler.jsonc` so local deploys update the intended service.
@@ -17,7 +17,7 @@ Deploys are run manually from a local machine using Wrangler CLI. From the repos
 
 ```sh
 vp install
-(cd apps/website && vp build)
+vp run website#build
 vp dlx wrangler deploy --config wrangler.jsonc
 ```
 

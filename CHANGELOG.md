@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-05
+
+- Refactor the marketing website from a plain Vite React app to TanStack Start. The homepage now lives in Start file routes with a root document for metadata, favicon, stylesheet, and analytics script handling; the build prerenders `/` into `apps/website/dist/client` for the existing Cloudflare static assets Worker.
+- Keep marketing-site demo videos visible in prerendered output instead of relying on a hydration-time `loadeddata` event to reveal them.
+
 ## 2026-06-03
 
 - Redesign the sidebar into collapsible `Pinned`, `Recents`, and `Everything` sections. The existing file tree now lives under Everything; files can be pinned/unpinned into Pinned; Recents is metadata-sorted from the workspace index with cached pagination so Show More does not rescan the workspace.

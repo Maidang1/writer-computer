@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { AppleGlyph, WriterMark } from "./components/Mark";
+import { AppleGlyph, WriterMark } from "../components/Mark";
 
 const FEATURES = [
   { label: "Private", description: "all your documents live in your computer" },
@@ -22,7 +22,11 @@ const DEMOS = [
   "/demo-videos/08.mp4",
 ];
 
-export function App() {
+export const Route = createFileRoute("/")({
+  component: HomePage,
+});
+
+function HomePage() {
   return (
     <div className="page">
       <main className="hero">
@@ -91,18 +95,9 @@ export function App() {
 }
 
 function DemoVideo({ src }: { src: string }) {
-  const [loaded, setLoaded] = useState(false);
   return (
-    <div className={loaded ? "shot is-loaded" : "shot"}>
-      <video
-        src={src}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        onLoadedData={() => setLoaded(true)}
-      />
+    <div className="shot">
+      <video src={src} autoPlay muted loop playsInline preload="metadata" />
     </div>
   );
 }
