@@ -201,7 +201,9 @@ export function CompactFileLayout() {
   const pickerShellStyle = {
     width: `${pickerMetrics.rootWidth}px`,
     height: `${pickerShellHeight}px`,
-    "--compact-picker-trigger-bg-opacity": isNavigatorOpen ? "0" : "0.09",
+    "--compact-picker-trigger-bg-opacity": isNavigatorOpen
+      ? "0"
+      : "var(--compact-picker-trigger-bg-closed-opacity)",
     "--compact-picker-trigger-bg-delay": isNavigatorOpen
       ? "0ms"
       : `${PICKER_TRIGGER_BG_CLOSE_DELAY_MS}ms`,
