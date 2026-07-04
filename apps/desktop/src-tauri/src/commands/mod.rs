@@ -1,3 +1,4 @@
+pub mod asset_upload;
 pub mod fs;
 pub mod images;
 pub mod recents;

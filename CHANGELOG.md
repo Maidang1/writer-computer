@@ -2,6 +2,7 @@
 
 ## 2026-07-05
 
+- Add Madinah Cloudflare asset upload for pasted images. Preferences now has an Asset Upload section for the Cloudflare R2 Worker endpoint, API key, public base URL, prefix, max size, and connection check. Pasted images use the configured upload worker and insert the public URL; unconfigured installs keep the local `{note}-assets` fallback.
 - Align the desktop editor surface with the Madinah Astro article detail renderer: bundle the local Jinkai font subsets, add `reader-*` typography/color tokens, set the default writing column to the Astro post content width, and restyle headings, paragraphs, links, lists, quotes, inline code, fenced code, tables, and images through the ProseMark editor theme.
 - Add README fork, upstream attribution, modification notice, GPLv3 distribution, corresponding-source, and warranty-disclaimer notes for this independently maintained fork.
 - Point fork-owned release, updater, website, Cloudflare Worker, and e2e bundle metadata at `Maidang1/writer-computer`, with release docs calling out the required updater key replacement before publishing signed builds.

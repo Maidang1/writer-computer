@@ -64,18 +64,12 @@ import { getWorkspaceRoot } from "@/hooks/workspace-api";
 import { buildSlugIndex, parseDocumentHeadings } from "@/hooks/use-document-headings";
 import type { DocumentHeading } from "@/hooks/use-document-headings";
 import { parseDocument, parseFrontmatter } from "@/lib/frontmatter";
-import {
-  formatMarkdownDestination,
-  getFileName,
-  normalizeMarkdownDestination,
-  resolveLinkTarget,
-} from "@/lib/paths";
+import { getFileName, normalizeMarkdownDestination, resolveLinkTarget } from "@/lib/paths";
 import { consumePendingAnchor, setPendingAnchor } from "@/lib/pending-anchor";
 import { logTimeline, mark } from "@/lib/startup-metrics";
 import * as tauri from "@/lib/tauri";
 import { showAnchorWarning } from "./anchor-warning-store";
-
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+import { resolvePastedImageMarkdown } from "./image-paste-handler";
 
 const VIEWPORT_OVERSHOOT = 2000;
 const VIEWPORT_PARSE_BUDGET_MS = 50;
@@ -196,15 +190,13 @@ async function handleImagePaste(
   filePath: string,
   isDisposed: () => boolean,
 ) {
-  const buffer = await file.arrayBuffer();
+  const result = await resolvePastedImageMarkdown(file, filePath);
   if (isDisposed()) return;
-  if (buffer.byteLength > MAX_IMAGE_SIZE) return;
+  insertImageMarkdown(view, result.alt, result.destination);
+}
 
-  const imageData = Array.from(new Uint8Array(buffer));
-  const format = file.type.split("/")[1] || "png";
-  const result = await tauri.saveClipboardImage(filePath, imageData, format);
-  if (isDisposed()) return;
-  const imageMarkdown = `![${file.name}](${formatMarkdownDestination(result.relative_path)})`;
+function insertImageMarkdown(view: EditorView, alt: string, destination: string) {
+  const imageMarkdown = `![${alt}](${destination})`;
   const cursor = view.state.selection.main.head;
   view.dispatch({ changes: { from: cursor, insert: imageMarkdown } });
 }
