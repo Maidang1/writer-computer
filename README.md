@@ -16,7 +16,7 @@ This fork is independently maintained. Issues, releases, binaries, signatures, u
 
 ## Changes From Upstream
 
-This fork may include changes to product direction, desktop app behavior, release configuration, website copy, branding, and local development workflow.
+This fork may include changes to product direction, desktop app behavior, release configuration, branding, and local development workflow.
 
 Release-level changes are tracked in [CHANGELOG.md](./CHANGELOG.md). Implementation notes and feature specs live in [SPECs/](./SPECs/).
 
@@ -33,7 +33,6 @@ The software is provided without warranty to the extent permitted by GPLv3.
 - `apps/desktop/` — Tauri desktop app.
 - `apps/desktop/src/` — React frontend.
 - `apps/desktop/src-tauri/src/` — Rust commands, workspace state, watcher, updater, and CLI integration.
-- `apps/website/` — landing page.
 - `docs/` — project and agent workflow docs.
 - `SPECs/` — feature specs and design notes.
 
