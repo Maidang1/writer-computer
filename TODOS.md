@@ -6,6 +6,7 @@
 
 ## Done
 
+- Madinah article render parity foundation: [`SPECs/madinah-render-parity-spec.md`](SPECs/madinah-render-parity-spec.md) — align the current Tauri editor surface to the Madinah Astro article detail typography, colors, width, and core Markdown block treatment before migrating AI, Cloudflare image upload, and slash capabilities.
 - Fork ownership metadata: [`SPECs/fork-ownership-config-spec.md`](SPECs/fork-ownership-config-spec.md) — add README fork/license notices and point release, updater, website, Cloudflare Worker, and e2e bundle metadata at the fork repository.
 - Sidebar drag-and-drop move: [`SPECs/sidebar-drag-and-drop-move-spec.md`](SPECs/sidebar-drag-and-drop-move-spec.md) — drag files/folders in the `Everything` tree to re-parent them (drop on folder → inside, on file → its folder, on empty space → workspace root), with multi-select batches, open-tab/pin/expanded-state rewrites, and collision reporting. Pointer-event based so it coexists with the existing Finder-drop-to-open; inline rename and drag-move now share one write path (`use-move-entry`).
 - Compact picker recents polish — add a plain non-hovering Recents label using sidebar section styling, remove the search field, per-row opened time, Open other file row, and active file entry, then keep the row remove affordance small so the picker is a direct global recents list.
@@ -65,9 +66,11 @@ Previously-triaged work organized by phase. Pull into `Up Next` as capacity open
 
 - [ ] Inline media preview: [`SPECs/inline-media-preview-spec.md`](SPECs/inline-media-preview-spec.md)
 - [ ] Obsidian image embed: [`SPECs/obsidian-image-embed-spec.md`](SPECs/obsidian-image-embed-spec.md)
+- [ ] Madinah Cloudflare image upload migration — move pasted image handling from local asset save to the Madinah Cloudflare asset publishing flow.
 
 #### Architectural bets
 
+- [ ] Madinah AI and slash capability migration — migrate the old `madinah/apps/writer` AI polish and slash command surfaces into this Tauri fork through current command/context-menu architecture.
 - [ ] Archive files: [`SPECs/archive-files-spec.md`](SPECs/archive-files-spec.md) — medium risk. Adds a parallel storage area and a purge job.
 - [ ] Multi window (v1 shipped — single-process multi-window): [`SPECs/multi-window-spec.md`](SPECs/multi-window-spec.md). Future work: macOS Window menu listing open workspaces, session restore of all open windows at quit, tab tear-off across windows.
 - [ ] Custom MCP: [`SPECs/custom-mcp-spec.md`](SPECs/custom-mcp-spec.md) — **high risk**. New protocol client, trust model, and tool invocation surface.

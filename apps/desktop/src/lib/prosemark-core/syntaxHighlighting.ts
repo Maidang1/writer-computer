@@ -4,10 +4,8 @@ import { markdownTags } from "./markdown/tags";
 import { HighlightStyle, syntaxHighlighting, type TagStyle } from "@codemirror/language";
 import type { MarkdownConfig } from "@lezer/markdown";
 
-const fallbackMonospaceCodeFont =
-  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
-const editorFontSize = "var(--writer-editor-font-size, 16px)";
+const inlineCodeFontFamily = "var(--reader-font, var(--writer-editor-font-family))";
+const inlineCodeFontSize = "0.92em";
 
 export const additionalMarkdownSyntaxTags: MarkdownConfig = {
   // Define new nodes with tags here
@@ -78,8 +76,8 @@ export const baseSyntaxHighlights = syntaxHighlighting(
 
 const baseThemeSpec = {
   ".cm-content": {
-    fontFamily: "var(--font)",
-    fontSize: "0.9rem",
+    fontFamily: "var(--writer-editor-font-family, var(--reader-font))",
+    fontSize: "var(--writer-editor-font-size, 16.15px)",
     caretColor: "var(--pm-cursor-color)",
   },
   ".cm-editor .cm-cursor, .cm-editor .cm-dropCursor": {
@@ -172,13 +170,13 @@ const baseThemeSpec = {
     paddingLeft: "6px",
   },
   ".cm-inline-code": {
-    fontFamily: codeFontFamily,
+    fontFamily: inlineCodeFontFamily,
     fontVariantLigatures: "none",
     fontFeatureSettings: '"calt" 0',
     fontKerning: "none",
-    padding: "0.2rem",
-    borderRadius: "0.4rem",
-    fontSize: editorFontSize,
+    padding: "0.08em 0.42em",
+    borderRadius: "4px",
+    fontSize: inlineCodeFontSize,
     backgroundColor: "var(--pm-code-background-color)",
   },
 };

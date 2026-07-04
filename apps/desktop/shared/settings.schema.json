@@ -7,7 +7,7 @@
       "description": "Font size in pixels for the editor",
       "category": "Editor",
       "type": "number",
-      "default": 16,
+      "default": 16.15,
       "cssVar": "--writer-editor-font-size",
       "cssFormat": "px"
     },
@@ -17,7 +17,7 @@
       "description": "Line height multiplier for the editor",
       "category": "Editor",
       "type": "number",
-      "default": 1.8,
+      "default": 1.76,
       "cssVar": "--writer-editor-line-height"
     },
     {

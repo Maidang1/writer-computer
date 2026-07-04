@@ -52,7 +52,9 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
     <div
       data-pane
       className={
-        isActive ? "relative z-10 h-full" : "absolute inset-0 invisible pointer-events-none"
+        isActive
+          ? "relative z-10 h-full bg-[var(--reader-page)] text-[var(--reader-ink)]"
+          : "absolute inset-0 invisible pointer-events-none"
       }
     >
       <EditorScrollContainer ref={scrollContainerRef}>

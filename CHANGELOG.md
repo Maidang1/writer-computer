@@ -2,6 +2,7 @@
 
 ## 2026-07-05
 
+- Align the desktop editor surface with the Madinah Astro article detail renderer: bundle the local Jinkai font subsets, add `reader-*` typography/color tokens, set the default writing column to the Astro post content width, and restyle headings, paragraphs, links, lists, quotes, inline code, fenced code, tables, and images through the ProseMark editor theme.
 - Add README fork, upstream attribution, modification notice, GPLv3 distribution, corresponding-source, and warranty-disclaimer notes for this independently maintained fork.
 - Point fork-owned release, updater, website, Cloudflare Worker, and e2e bundle metadata at `Maidang1/writer-computer`, with release docs calling out the required updater key replacement before publishing signed builds.
 - Record the pnpm build-script approvals needed for `vp install` and `vp check` on the current lockfile.

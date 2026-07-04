@@ -11,7 +11,10 @@ export function useEditorSettingsRef() {
   return useCallback(
     (el: HTMLDivElement | null) => {
       if (!el) return;
-      el.style.setProperty("--writer-editor-max-width", editorWidth === "full" ? "100%" : "720px");
+      el.style.setProperty(
+        "--writer-editor-max-width",
+        editorWidth === "full" ? "var(--reader-content-width)" : "720px",
+      );
     },
     [editorWidth],
   );

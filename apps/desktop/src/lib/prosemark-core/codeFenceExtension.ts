@@ -9,7 +9,7 @@ import { FRONTMATTER_LANGUAGE_LABEL, isFrontmatterNode } from "./markdown/frontm
 const fallbackMonospaceCodeFont =
   "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
 const codeFontFamily = `var(--pm-code-font, ${fallbackMonospaceCodeFont})`;
-const editorFontSize = "var(--writer-editor-font-size, 16px)";
+const codeBlockFontSize = "var(--reader-code-block-font-size, 12px)";
 
 const codeBlockDecorations = (view: EditorView) => {
   const builder = new RangeSetBuilder<Decoration>();
@@ -154,7 +154,7 @@ const codeFenceThemeSpec = {
     marginLeft: "6px",
     backgroundColor: "var(--pm-code-background-color)",
     fontFamily: codeFontFamily,
-    fontSize: editorFontSize,
+    fontSize: codeBlockFontSize,
     fontVariantLigatures: "none",
     fontFeatureSettings: '"calt" 0',
     fontKerning: "none",

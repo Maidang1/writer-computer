@@ -549,7 +549,7 @@ mod tests {
         // Default
         assert_eq!(
             settings.get("editor.font-size"),
-            Some(&ConfigValue::Number(16.0))
+            Some(&ConfigValue::Number(16.15))
         );
 
         // Global override
@@ -599,7 +599,7 @@ mod tests {
         // Falls back to default
         assert_eq!(
             settings.get("editor.font-size"),
-            Some(&ConfigValue::Number(16.0))
+            Some(&ConfigValue::Number(16.15))
         );
     }
 
