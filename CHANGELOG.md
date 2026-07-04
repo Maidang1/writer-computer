@@ -2,6 +2,7 @@
 
 ## 2026-07-05
 
+- Complete the Madinah AI migration with metadata generation and document review. The same Codex/Claude ACP settings now generate title, description, tags, and slug frontmatter suggestions, and can show a structured review panel with summary and issue-level suggestions.
 - Add the Madinah AI writing path and slash-command surface. Preferences now has an AI section for Codex/Claude ACP commands, environment variables, custom instruction, timeout, and connection check. The editor context menu and `/` menu can rewrite the current selection or polish the full document through the shared command path.
 - Add Madinah Cloudflare asset upload for pasted images. Preferences now has an Asset Upload section for the Cloudflare R2 Worker endpoint, API key, public base URL, prefix, max size, and connection check. Pasted images use the configured upload worker and insert the public URL; unconfigured installs keep the local `{note}-assets` fallback.
 - Align the desktop editor surface with the Madinah Astro article detail renderer: bundle the local Jinkai font subsets, add `reader-*` typography/color tokens, set the default writing column to the Astro post content width, and restyle headings, paragraphs, links, lists, quotes, inline code, fenced code, tables, and images through the ProseMark editor theme.

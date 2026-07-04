@@ -59,6 +59,35 @@ pub struct AiActionResult {
     pub kind: String,
     pub content: String,
     pub provider: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<AiMetadataSuggestion>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub review: Option<AiDocumentReview>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AiMetadataSuggestion {
+    pub title: String,
+    pub description: String,
+    pub tags: Vec<String>,
+    pub slug: String,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AiDocumentReview {
+    pub summary: String,
+    pub issues: Vec<AiDocumentReviewIssue>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AiDocumentReviewIssue {
+    pub severity: String,
+    pub title: String,
+    pub detail: String,
+    pub suggestion: String,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -409,23 +438,44 @@ async fn run_ai_action_with_config(
         return Err(AppError::Invalid("AI agent returned empty content".into()));
     }
 
+    let metadata = if kind == "generate-metadata" {
+        Some(parse_ai_metadata_suggestion(&content)?)
+    } else {
+        None
+    };
+    let review = if kind == "review-document" {
+        Some(parse_ai_document_review(&content)?)
+    } else {
+        None
+    };
+
     Ok(AiActionResult {
         kind,
         content,
         provider: config.provider,
+        metadata,
+        review,
     })
 }
 
 fn normalize_ai_action_kind(kind: &str) -> Result<String, AppError> {
     match kind {
-        "polish-document" | "rewrite-selection" => Ok(kind.into()),
+        "polish-document" | "rewrite-selection" | "generate-metadata" | "review-document" => {
+            Ok(kind.into())
+        }
         _ => Err(AppError::Invalid(format!("Unsupported AI action: {kind}"))),
     }
 }
 
 fn build_acp_action_prompt(kind: &str, content: &str, instruction: &str) -> String {
     let content = content.trim();
-    let trimmed_instruction = instruction.trim();
+    let trimmed_instruction = if (kind == "generate-metadata" || kind == "review-document")
+        && instruction.trim() == DEFAULT_POLISH_INSTRUCTION
+    {
+        ""
+    } else {
+        instruction.trim()
+    };
     let extra_instruction = if trimmed_instruction.is_empty() {
         String::new()
     } else {
@@ -435,6 +485,20 @@ fn build_acp_action_prompt(kind: &str, content: &str, instruction: &str) -> Stri
     if kind == "rewrite-selection" {
         return format!(
             "Rewrite the selected Markdown for clarity, fluency, and natural expression.{extra_instruction}\n\nRules:\n- Return only the rewritten selected Markdown.\n- Preserve factual meaning, Markdown structure, links, code fences, and MDX/JSX components.\n- Do not add commentary or wrap the result in a code fence.\n{}\n\nSelected Markdown:\n<<<MADINAH_WRITER_SELECTION\n{content}\nMADINAH_WRITER_SELECTION",
+            build_acp_result_envelope_instruction(),
+        );
+    }
+
+    if kind == "generate-metadata" {
+        return format!(
+            "Generate publication metadata for the Markdown body.{extra_instruction}\n\nReturn only valid JSON with this exact shape:\n{{\n  \"title\": \"string\",\n  \"description\": \"string\",\n  \"tags\": [\"string\"],\n  \"slug\": \"string\"\n}}\n\nRules:\n- Keep the title concise and specific.\n- Keep description under 180 characters.\n- Return 3 to 6 lowercase tags when possible.\n- Use a URL-safe kebab-case slug.\n- Do not include Markdown fences or explanatory text.\n{}\n\nMarkdown body:\n<<<MADINAH_WRITER_BODY\n{content}\nMADINAH_WRITER_BODY",
+            build_acp_result_envelope_instruction(),
+        );
+    }
+
+    if kind == "review-document" {
+        return format!(
+            "Review the Markdown document for structure, clarity, and publishing readiness.{extra_instruction}\n\nReturn only valid JSON with this exact shape:\n{{\n  \"summary\": \"string\",\n  \"issues\": [\n    {{\n      \"severity\": \"info | warning | critical\",\n      \"title\": \"string\",\n      \"detail\": \"string\",\n      \"suggestion\": \"string\"\n    }}\n  ]\n}}\n\nRules:\n- Prefer concrete issues over generic advice.\n- Use \"critical\" only for issues that block publication or make the article misleading.\n- Keep every field concise.\n- Do not include Markdown fences or explanatory text.\n{}\n\nMarkdown body:\n<<<MADINAH_WRITER_BODY\n{content}\nMADINAH_WRITER_BODY",
             build_acp_result_envelope_instruction(),
         );
     }
@@ -529,6 +593,157 @@ fn strip_markdown_fence(value: &str) -> &str {
         return trimmed;
     }
     &body_with_closing[..last_newline]
+}
+
+fn parse_ai_metadata_suggestion(value: &str) -> Result<AiMetadataSuggestion, AppError> {
+    let parsed = parse_acp_json_object(value, "metadata suggestion")?;
+    let title = string_field(&parsed, "title", true, "metadata")?;
+    let description = string_field(&parsed, "description", true, "metadata")?;
+    let tags = parsed
+        .get("tags")
+        .and_then(Value::as_array)
+        .map(|items| {
+            let mut tags = Vec::new();
+            for item in items {
+                let tag = item
+                    .as_str()
+                    .map(str::to_string)
+                    .unwrap_or_else(|| item.to_string())
+                    .trim()
+                    .to_lowercase();
+                if !tag.is_empty() && !tags.contains(&tag) {
+                    tags.push(tag);
+                }
+            }
+            tags
+        })
+        .unwrap_or_default();
+    let slug = slug_field(parsed.get("slug"), &title);
+
+    Ok(AiMetadataSuggestion {
+        title,
+        description,
+        tags,
+        slug,
+    })
+}
+
+fn parse_ai_document_review(value: &str) -> Result<AiDocumentReview, AppError> {
+    let parsed = parse_acp_json_object(value, "document review")?;
+    let summary = string_field(&parsed, "summary", true, "review")?;
+    let issues = parsed
+        .get("issues")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|item| {
+                    let issue = item.as_object()?;
+                    let title = string_field_map(issue, "title", false).ok()?;
+                    let detail = string_field_map(issue, "detail", false).ok()?;
+                    let suggestion = string_field_map(issue, "suggestion", false).ok()?;
+                    if title.is_empty() && detail.is_empty() && suggestion.is_empty() {
+                        return None;
+                    }
+                    Some(AiDocumentReviewIssue {
+                        severity: review_severity(issue.get("severity")),
+                        title: if title.is_empty() {
+                            "Writing issue".into()
+                        } else {
+                            title
+                        },
+                        detail,
+                        suggestion,
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    Ok(AiDocumentReview { summary, issues })
+}
+
+fn parse_acp_json_object(
+    value: &str,
+    label: &str,
+) -> Result<serde_json::Map<String, Value>, AppError> {
+    let normalized = normalize_acp_action_text(value);
+    match serde_json::from_str::<Value>(&normalized) {
+        Ok(Value::Object(object)) => Ok(object),
+        _ => Err(AppError::Invalid(format!(
+            "AI agent returned invalid {label} JSON"
+        ))),
+    }
+}
+
+fn string_field(
+    record: &serde_json::Map<String, Value>,
+    key: &str,
+    required: bool,
+    label: &str,
+) -> Result<String, AppError> {
+    string_field_map(record, key, required)
+        .map_err(|_| AppError::Invalid(format!("AI agent returned {label} without {key}")))
+}
+
+fn string_field_map(
+    record: &serde_json::Map<String, Value>,
+    key: &str,
+    required: bool,
+) -> Result<String, ()> {
+    let text = record
+        .get(key)
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    if text.is_empty() && required {
+        Err(())
+    } else {
+        Ok(text)
+    }
+}
+
+fn slug_field(value: Option<&Value>, fallback: &str) -> String {
+    let raw = value
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or(fallback);
+    create_slug(raw)
+}
+
+fn create_slug(value: &str) -> String {
+    let mut slug = String::new();
+    let mut last_was_dash = false;
+    for ch in value.trim().chars().flat_map(char::to_lowercase) {
+        if ch == '\'' || ch == '"' {
+            continue;
+        }
+        if ch.is_alphanumeric() {
+            slug.push(ch);
+            last_was_dash = false;
+            continue;
+        }
+        if !last_was_dash && !slug.is_empty() {
+            slug.push('-');
+            last_was_dash = true;
+        }
+    }
+    while slug.ends_with('-') {
+        slug.pop();
+    }
+    if slug.is_empty() {
+        "untitled".into()
+    } else {
+        slug
+    }
+}
+
+fn review_severity(value: Option<&Value>) -> String {
+    match value.and_then(Value::as_str) {
+        Some(severity @ ("critical" | "warning" | "info")) => severity.into(),
+        _ => "info".into(),
+    }
 }
 
 async fn run_acp_initialize(config: &AiRuntimeConfig, cwd: &Path) -> Result<(), AppError> {
@@ -948,11 +1163,70 @@ mod tests {
     }
 
     #[test]
+    fn builds_metadata_and_review_prompts() {
+        let metadata_prompt =
+            build_acp_action_prompt("generate-metadata", "# Draft", DEFAULT_POLISH_INSTRUCTION);
+        assert!(metadata_prompt.contains("\"title\": \"string\""));
+        assert!(metadata_prompt.contains("Return only valid JSON"));
+        assert!(!metadata_prompt.contains("Additional writing instruction"));
+
+        let review_prompt = build_acp_action_prompt("review-document", "# Draft", "focus on flow");
+        assert!(review_prompt.contains("\"severity\": \"info | warning | critical\""));
+        assert!(review_prompt.contains("focus on flow"));
+    }
+
+    #[test]
     fn normalizes_enveloped_fenced_output() {
         let raw = format!(
             "log\n{ACP_RESULT_START}\n```markdown\n# Polished\n```\n{ACP_RESULT_END}\nmore"
         );
         assert_eq!(normalize_acp_action_text(&raw), "# Polished");
+    }
+
+    #[test]
+    fn parses_metadata_json() {
+        let raw = r#"{
+          "title": "Madinah AI",
+          "description": "A concise description.",
+          "tags": ["AI", "writer", "AI"],
+          "slug": "Madinah AI"
+        }"#;
+        assert_eq!(
+            parse_ai_metadata_suggestion(raw).unwrap(),
+            AiMetadataSuggestion {
+                title: "Madinah AI".into(),
+                description: "A concise description.".into(),
+                tags: vec!["ai".into(), "writer".into()],
+                slug: "madinah-ai".into(),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_review_json_with_safe_severities() {
+        let raw = r#"{
+          "summary": "Clear structure with one weak opening.",
+          "issues": [
+            {
+              "severity": "warning",
+              "title": "Weak opening",
+              "detail": "The first paragraph is vague.",
+              "suggestion": "Start with the concrete claim."
+            },
+            {
+              "severity": "unknown",
+              "title": "",
+              "detail": "Needs a source.",
+              "suggestion": ""
+            }
+          ]
+        }"#;
+        let review = parse_ai_document_review(raw).unwrap();
+        assert_eq!(review.summary, "Clear structure with one weak opening.");
+        assert_eq!(review.issues.len(), 2);
+        assert_eq!(review.issues[0].severity, "warning");
+        assert_eq!(review.issues[1].severity, "info");
+        assert_eq!(review.issues[1].title, "Writing issue");
     }
 
     #[test]

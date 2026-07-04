@@ -5,6 +5,7 @@ import { EditorScrollContainer } from "./editor-scroll-container";
 import { EditorSearchOverview } from "./editor-search-overview";
 import { SectionRail } from "./section-rail";
 import { AiOperationBanner } from "./ai-operation-banner";
+import { AiReviewPanel } from "./ai-review-panel";
 import { useCloseEditorSearchWhenInactive } from "./use-close-editor-search-when-inactive";
 import { useEditorSettingsRef } from "./use-editor-settings";
 import { useIsFileLoading } from "@/hooks/use-tabs";
@@ -81,6 +82,7 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
       </EditorScrollContainer>
       <SectionRail filePath={path} view={editorView} scrollContainerRef={scrollContainerRef} />
       {isActive && <AiOperationBanner />}
+      {isActive && <AiReviewPanel filePath={path} />}
       {isActive && <EditorSearchOverview scrollContainerRef={scrollContainerRef} />}
     </div>
   );

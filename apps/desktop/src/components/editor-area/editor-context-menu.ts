@@ -57,9 +57,21 @@ export function buildEditorBodyMenuItemsSpec(
         },
         {
           kind: "item",
+          id: "ai.generateMetadata",
+          text: "Generate metadata",
+          action: () => run("ai.generateMetadata"),
+        },
+        {
+          kind: "item",
           id: "ai.polishDocument",
           text: "Polish document",
           action: () => run("ai.polishDocument"),
+        },
+        {
+          kind: "item",
+          id: "ai.reviewDocument",
+          text: "Review document",
+          action: () => run("ai.reviewDocument"),
         },
       ],
     });

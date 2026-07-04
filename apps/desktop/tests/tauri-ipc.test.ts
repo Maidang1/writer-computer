@@ -147,14 +147,20 @@ describe("AI IPC wrappers", () => {
 
   test("runAiAction calls correct command", async () => {
     const input: ipc.AiActionInput = {
-      kind: "rewrite-selection",
+      kind: "generate-metadata",
       content: "draft",
       workspaceRoot: "/workspace",
     };
     mockedInvoke.mockResolvedValue({
-      kind: "rewrite-selection",
-      content: "result",
+      kind: "generate-metadata",
+      content: "{}",
       provider: "codex",
+      metadata: {
+        title: "Madinah AI",
+        description: "Generated description.",
+        tags: ["ai"],
+        slug: "madinah-ai",
+      },
     });
     await ipc.runAiAction(input);
     expect(mockedInvoke).toHaveBeenCalledWith("run_ai_action", { input });

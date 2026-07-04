@@ -326,8 +326,29 @@ export interface AiCheckResult {
   message: string;
 }
 
+export interface AiMetadataSuggestion {
+  title: string;
+  description: string;
+  tags: string[];
+  slug: string;
+}
+
+export type AiDocumentReviewIssueSeverity = "info" | "warning" | "critical";
+
+export interface AiDocumentReviewIssue {
+  severity: AiDocumentReviewIssueSeverity;
+  title: string;
+  detail: string;
+  suggestion: string;
+}
+
+export interface AiDocumentReview {
+  summary: string;
+  issues: AiDocumentReviewIssue[];
+}
+
 export interface AiActionInput {
-  kind: "polish-document" | "rewrite-selection";
+  kind: "polish-document" | "rewrite-selection" | "generate-metadata" | "review-document";
   content: string;
   workspaceRoot?: string | null;
 }
@@ -336,6 +357,8 @@ export interface AiActionResult {
   kind: AiActionInput["kind"];
   content: string;
   provider: AiAgentProvider;
+  metadata?: AiMetadataSuggestion;
+  review?: AiDocumentReview;
 }
 
 export function loadAiSettings(): Promise<AiSettings> {

@@ -138,6 +138,22 @@ describe("buildEditorBodyMenuItemsSpec", () => {
     expect(items).toContain("fmt.clear");
   });
 
+  test("AI submenu contains metadata and review commands", () => {
+    const handlers = makeBodyHandlers();
+    handlers.onRunCommand = () => {};
+    const spec = buildEditorBodyMenuItemsSpec(handlers, false);
+    const aiSubmenu = spec.find((e) => e.kind === "submenu" && e.text === "AI");
+    expect(aiSubmenu).toBeDefined();
+    if (aiSubmenu?.kind !== "submenu") throw new Error("expected submenu");
+    const items = aiSubmenu.items.filter((e) => e.kind === "item").map((e) => e.id);
+    expect(items).toEqual([
+      "ai.rewriteSelection",
+      "ai.generateMetadata",
+      "ai.polishDocument",
+      "ai.reviewDocument",
+    ]);
+  });
+
   test("Paragraph submenu contains heading and list items", () => {
     const handlers = makeBodyHandlers();
     handlers.onRunCommand = () => {};

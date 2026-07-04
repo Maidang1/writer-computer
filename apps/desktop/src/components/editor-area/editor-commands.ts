@@ -10,7 +10,10 @@ import {
   toggleFencedCodeBlock,
 } from "./markdown-formatting";
 import { setAiOperation } from "./ai-operation-store";
+import { setAiReviewState } from "./ai-review-store";
 import * as tauri from "@/lib/tauri";
+import { applyAiMetadataToFrontmatter } from "@/lib/ai-metadata";
+import { getOpenFile, updateFrontmatter } from "@/hooks/editor-api";
 import { getWorkspaceRoot } from "@/hooks/workspace-api";
 
 export type EditorCommandSurface = "context" | "slash";
@@ -134,6 +137,8 @@ const EXTRA_COMMANDS: Array<
 
 export const AI_POLISH_DOCUMENT_COMMAND_ID = "ai.polishDocument";
 export const AI_REWRITE_SELECTION_COMMAND_ID = "ai.rewriteSelection";
+export const AI_GENERATE_METADATA_COMMAND_ID = "ai.generateMetadata";
+export const AI_REVIEW_DOCUMENT_COMMAND_ID = "ai.reviewDocument";
 
 export const EDITOR_COMMANDS: EditorCommand[] = [
   ...Object.entries(formattingCommands).map(([id, command], index): EditorCommand => {
@@ -171,6 +176,16 @@ export const EDITOR_COMMANDS: EditorCommand[] = [
     run: (view, filePath) => rewriteSelectionWithAi(view, filePath),
   },
   {
+    id: AI_GENERATE_METADATA_COMMAND_ID,
+    label: "Generate metadata",
+    group: "AI",
+    description: "Generate Madinah blog frontmatter",
+    keywords: ["ai", "metadata", "frontmatter", "title", "description", "tags", "slug"],
+    priority: 86,
+    surfaces: ["context", "slash"],
+    run: (view, filePath) => generateMetadataWithAi(view, filePath),
+  },
+  {
     id: AI_POLISH_DOCUMENT_COMMAND_ID,
     label: "Polish document",
     group: "AI",
@@ -179,6 +194,16 @@ export const EDITOR_COMMANDS: EditorCommand[] = [
     priority: 84,
     surfaces: ["context", "slash"],
     run: (view, filePath) => polishDocumentWithAi(view, filePath),
+  },
+  {
+    id: AI_REVIEW_DOCUMENT_COMMAND_ID,
+    label: "Review document",
+    group: "AI",
+    description: "Review structure and clarity",
+    keywords: ["ai", "review", "issues", "structure", "clarity"],
+    priority: 82,
+    surfaces: ["context", "slash"],
+    run: (view, filePath) => reviewDocumentWithAi(view, filePath),
   },
 ];
 
@@ -287,6 +312,99 @@ async function rewriteSelectionWithAi(view: EditorView, _filePath: string) {
     label: "Selection rewritten",
     detail: `Applied ${providerLabel(result.provider)} result`,
   });
+}
+
+async function generateMetadataWithAi(view: EditorView, filePath: string) {
+  const content = view.state.doc.toString();
+  if (!content.trim()) {
+    throw new Error("Nothing to analyze");
+  }
+
+  setAiOperation({
+    status: "running",
+    label: "Generating metadata",
+    detail: "AI is reading the current document",
+  });
+
+  const result = await tauri.runAiAction({
+    kind: "generate-metadata",
+    content,
+    workspaceRoot: getWorkspaceRoot(),
+  });
+
+  if (!result.metadata) {
+    throw new Error("AI returned metadata without parsed result");
+  }
+
+  const current = getOpenFile(filePath);
+  const next = applyAiMetadataToFrontmatter(current?.frontmatter ?? null, result.metadata);
+  updateFrontmatter(filePath, next);
+  view.focus();
+
+  setAiOperation({
+    status: "success",
+    label: "Metadata generated",
+    detail: `${providerLabel(result.provider)} updated title, description, tags, and slug`,
+  });
+}
+
+async function reviewDocumentWithAi(view: EditorView, filePath: string) {
+  const content = view.state.doc.toString();
+  if (!content.trim()) {
+    throw new Error("Nothing to review");
+  }
+
+  setAiReviewState({
+    status: "loading",
+    filePath,
+    message: "Reviewing document",
+    review: null,
+    updatedAt: null,
+  });
+  setAiOperation({
+    status: "running",
+    label: "Reviewing document",
+    detail: "AI is checking structure and clarity",
+  });
+
+  try {
+    const result = await tauri.runAiAction({
+      kind: "review-document",
+      content,
+      workspaceRoot: getWorkspaceRoot(),
+    });
+
+    if (!result.review) {
+      throw new Error("AI returned review without parsed result");
+    }
+
+    setAiReviewState({
+      status: "ready",
+      filePath,
+      message: "Review ready",
+      review: result.review,
+      updatedAt: new Date().toISOString(),
+    });
+    view.focus();
+
+    setAiOperation({
+      status: "success",
+      label: "Review ready",
+      detail: `${providerLabel(result.provider)} found ${result.review.issues.length} issue${
+        result.review.issues.length === 1 ? "" : "s"
+      }`,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    setAiReviewState({
+      status: "error",
+      filePath,
+      message,
+      review: null,
+      updatedAt: null,
+    });
+    throw error;
+  }
 }
 
 function providerLabel(provider: tauri.AiAgentProvider): string {

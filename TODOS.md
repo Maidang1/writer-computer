@@ -6,6 +6,7 @@
 
 ## Done
 
+- Madinah AI metadata and review migration: [`SPECs/madinah-ai-metadata-review-spec.md`](SPECs/madinah-ai-metadata-review-spec.md) — complete the remaining old-writer AI surfaces by generating blog frontmatter suggestions and showing structured document review results through the current ACP-backed Tauri command path.
 - Madinah AI and slash capability migration: [`SPECs/madinah-ai-slash-spec.md`](SPECs/madinah-ai-slash-spec.md) — add ACP-backed AI settings and run paths for selection rewrite/full-document polish, then expose shared editor commands from the context menu and slash menu.
 - Madinah Cloudflare image upload migration: [`SPECs/madinah-cloudflare-image-upload-spec.md`](SPECs/madinah-cloudflare-image-upload-spec.md) — move pasted image handling from local asset save to the Madinah upload-worker flow while preserving local save as the unconfigured fallback.
 - Madinah article render parity foundation: [`SPECs/madinah-render-parity-spec.md`](SPECs/madinah-render-parity-spec.md) — align the current Tauri editor surface to the Madinah Astro article detail typography, colors, width, and core Markdown block treatment before migrating AI, Cloudflare image upload, and slash capabilities.
