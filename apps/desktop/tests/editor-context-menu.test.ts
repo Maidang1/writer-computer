@@ -114,6 +114,7 @@ describe("buildEditorBodyMenuItemsSpec", () => {
       "copy",
       "paste",
       "paste-plain",
+      "[AI]",
       "[Format]",
       "[Paragraph]",
       "[Insert]",

@@ -8,7 +8,6 @@ import {
   Prec,
   StateField,
   Transaction,
-  type StateCommand,
 } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { HighlightStyle, forceParsing, syntaxHighlighting, syntaxTree } from "@codemirror/language";
@@ -48,16 +47,9 @@ import { dragFreezeExtensions } from "./drag-selection-gate";
 import { clampSelectionToHeadings, headingDecorations } from "./heading-decorations";
 import { imageSrcResolver } from "./image-src-resolver";
 import { wikiLinkExtension } from "./wiki-link-extension";
-import {
-  markdownFormatting,
-  formattingCommands,
-  clearInlineFormatting,
-  toggleFencedCodeBlock,
-  insertTable,
-  insertHorizontalRule,
-  insertToday,
-  insertNow,
-} from "./markdown-formatting";
+import { markdownFormatting } from "./markdown-formatting";
+import { runEditorCommand } from "./editor-commands";
+import { slashCommandExtension } from "./slash-command-extension";
 import * as editorApi from "@/hooks/editor-api";
 import { useReloadVersion } from "@/hooks/use-tabs";
 import { getWorkspaceRoot } from "@/hooks/workspace-api";
@@ -455,20 +447,7 @@ function editorBodyContextMenuExtension(
                 }
               : undefined,
             onRunCommand: (id: string) => {
-              view.focus();
-              const extraCommands: Record<string, StateCommand> = {
-                clearInlineFormatting,
-                toggleFencedCodeBlock,
-                insertTable,
-                insertHorizontalRule,
-                insertToday,
-                insertNow,
-              };
-              const registered = formattingCommands[id as keyof typeof formattingCommands];
-              const cmd: StateCommand | undefined = registered ? registered.run : extraCommands[id];
-              if (cmd) {
-                cmd({ state: view.state, dispatch: (tr) => view.dispatch(tr) });
-              }
+              runEditorCommand(id, view, filePath);
             },
           },
           hasLink,
@@ -598,6 +577,7 @@ function createEditorExtensions(
     headingDecorations,
     imageSrcResolver(getFilePath),
     wikiLinkExtension(getFilePath, isDisposed),
+    slashCommandExtension(getFilePath),
     markdownFormatting,
 
     EditorView.updateListener.of((update) => {

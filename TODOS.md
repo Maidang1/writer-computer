@@ -6,6 +6,7 @@
 
 ## Done
 
+- Madinah AI and slash capability migration: [`SPECs/madinah-ai-slash-spec.md`](SPECs/madinah-ai-slash-spec.md) — add ACP-backed AI settings and run paths for selection rewrite/full-document polish, then expose shared editor commands from the context menu and slash menu.
 - Madinah Cloudflare image upload migration: [`SPECs/madinah-cloudflare-image-upload-spec.md`](SPECs/madinah-cloudflare-image-upload-spec.md) — move pasted image handling from local asset save to the Madinah upload-worker flow while preserving local save as the unconfigured fallback.
 - Madinah article render parity foundation: [`SPECs/madinah-render-parity-spec.md`](SPECs/madinah-render-parity-spec.md) — align the current Tauri editor surface to the Madinah Astro article detail typography, colors, width, and core Markdown block treatment before migrating AI, Cloudflare image upload, and slash capabilities.
 - Fork ownership metadata: [`SPECs/fork-ownership-config-spec.md`](SPECs/fork-ownership-config-spec.md) — add README fork/license notices and point release, updater, website, Cloudflare Worker, and e2e bundle metadata at the fork repository.
@@ -70,7 +71,6 @@ Previously-triaged work organized by phase. Pull into `Up Next` as capacity open
 
 #### Architectural bets
 
-- [ ] Madinah AI and slash capability migration — migrate the old `madinah/apps/writer` AI polish and slash command surfaces into this Tauri fork through current command/context-menu architecture.
 - [ ] Archive files: [`SPECs/archive-files-spec.md`](SPECs/archive-files-spec.md) — medium risk. Adds a parallel storage area and a purge job.
 - [ ] Multi window (v1 shipped — single-process multi-window): [`SPECs/multi-window-spec.md`](SPECs/multi-window-spec.md). Future work: macOS Window menu listing open workspaces, session restore of all open windows at quit, tab tear-off across windows.
 - [ ] Custom MCP: [`SPECs/custom-mcp-spec.md`](SPECs/custom-mcp-spec.md) — **high risk**. New protocol client, trust model, and tool invocation surface.

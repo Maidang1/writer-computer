@@ -47,6 +47,24 @@ export function buildEditorBodyMenuItemsSpec(
     items.push({ kind: "separator" });
     items.push({
       kind: "submenu",
+      text: "AI",
+      items: [
+        {
+          kind: "item",
+          id: "ai.rewriteSelection",
+          text: "Rewrite selection",
+          action: () => run("ai.rewriteSelection"),
+        },
+        {
+          kind: "item",
+          id: "ai.polishDocument",
+          text: "Polish document",
+          action: () => run("ai.polishDocument"),
+        },
+      ],
+    });
+    items.push({
+      kind: "submenu",
       text: "Format",
       items: [
         {

@@ -5,6 +5,7 @@ import { SettingControl } from "./setting-control";
 import { ThemesSection } from "./themes-section";
 import { EditorScrollContainer } from "@/components/editor-area/editor-scroll-container";
 import { AssetUploadSection } from "./asset-upload-section";
+import { AiSettingsSection } from "./ai-settings-section";
 
 /** Section that renders above the Themes block. The schema-driven section
  *  list is rendered in two passes — these come first, the Themes section
@@ -82,6 +83,8 @@ export function SettingsPanel({ isActive }: { isActive: boolean }) {
           <ThemesSection />
 
           <AssetUploadSection isActive={isActive} />
+
+          <AiSettingsSection isActive={isActive} />
 
           {afterThemes.map(([cat, defs]) => renderSection(cat, defs))}
         </div>

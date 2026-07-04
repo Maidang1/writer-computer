@@ -299,3 +299,57 @@ export function uploadAssetImage(input: {
 }): Promise<AssetImageUploadResult> {
   return invoke("upload_asset_image", { input });
 }
+
+// AI commands
+export type AiAgentProvider = "codex" | "claude";
+
+export interface AiEnvVar {
+  name: string;
+  value: string;
+}
+
+export interface AiAgentSettings {
+  command: string;
+  env: AiEnvVar[];
+  instruction: string;
+  timeoutSeconds: number;
+}
+
+export interface AiSettings {
+  schemaVersion: 1;
+  provider: AiAgentProvider;
+  agents: Record<AiAgentProvider, AiAgentSettings>;
+}
+
+export interface AiCheckResult {
+  ok: boolean;
+  message: string;
+}
+
+export interface AiActionInput {
+  kind: "polish-document" | "rewrite-selection";
+  content: string;
+  workspaceRoot?: string | null;
+}
+
+export interface AiActionResult {
+  kind: AiActionInput["kind"];
+  content: string;
+  provider: AiAgentProvider;
+}
+
+export function loadAiSettings(): Promise<AiSettings> {
+  return invoke("load_ai_settings");
+}
+
+export function saveAiSettings(settings: AiSettings): Promise<AiSettings> {
+  return invoke("save_ai_settings", { settings });
+}
+
+export function checkAiSettings(settings: AiSettings): Promise<AiCheckResult> {
+  return invoke("check_ai_settings", { settings });
+}
+
+export function runAiAction(input: AiActionInput): Promise<AiActionResult> {
+  return invoke("run_ai_action", { input });
+}
