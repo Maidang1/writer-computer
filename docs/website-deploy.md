@@ -1,13 +1,13 @@
 # Website Deploy
 
-The marketing website lives in `apps/website/` and deploys to the existing Cloudflare Worker service `writer-website`.
+The marketing website lives in `apps/website/` and deploys to the Cloudflare Worker service `writer-computer-website`.
 
 ## Configuration
 
 - Worker config: `wrangler.jsonc`
-- Worker name: `writer-website`
+- Worker name: `writer-computer-website`
 - Static assets directory: `apps/website/dist/client`
-- Production URL: `https://writer.computer`
+- Production URL: configure a fork-owned domain or use the generated `workers.dev` URL.
 
 The Worker name in Cloudflare must match `name` in `wrangler.jsonc` so local deploys update the intended service.
 
@@ -21,7 +21,7 @@ vp run website#build
 vp dlx wrangler deploy --config wrangler.jsonc
 ```
 
-Wrangler must be logged into the Cloudflare account that owns `writer-website`:
+Wrangler must be logged into the Cloudflare account that owns `writer-computer-website`:
 
 ```sh
 vp dlx wrangler login
@@ -30,7 +30,7 @@ vp dlx wrangler login
 Verify the deployment:
 
 ```sh
-curl -I https://writer.computer
+curl -I <your fork website URL>
 ```
 
 ## Notes

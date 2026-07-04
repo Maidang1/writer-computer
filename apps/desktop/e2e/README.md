@@ -34,7 +34,7 @@ This builds the app with `--features e2e` (which embeds the WebDriver server)
 and then runs the smoke spec. The first build is slow; incremental rebuilds
 are fast.
 
-> The e2e build uses an isolated bundle identifier (`com.writer-computer.e2e`)
+> The e2e build uses an isolated bundle identifier (`com.maidang1.writer-computer.e2e`)
 > so it does NOT collide with `tauri-plugin-single-instance` from a Writer
 > dev or release instance running in another worktree. You can leave your
 > normal Writer running.
@@ -73,14 +73,14 @@ bundle identifier (see below).
 
 - `vp run desktop#dev` and `vp build` are unchanged — no WebDriver server.
 - The e2e build invokes
-  `cargo tauri build --features e2e --bundles app --config '{"identifier":"com.writer-computer.e2e","bundle":{"createUpdaterArtifacts":false}}'`.
+  `cargo tauri build --features e2e --bundles app --config '{"identifier":"com.maidang1.writer-computer.e2e","bundle":{"createUpdaterArtifacts":false}}'`.
   The overrides:
   - `--bundles app` skips DMG creation.
   - `createUpdaterArtifacts: false` skips updater artifact signing (which
     would otherwise demand `TAURI_SIGNING_PRIVATE_KEY`).
-  - `identifier: "com.writer-computer.e2e"` gives the e2e build its own
+  - `identifier: "com.maidang1.writer-computer.e2e"` gives the e2e build its own
     `tauri-plugin-single-instance` namespace and its own app data dir
-    (`~/Library/Application Support/com.writer-computer.e2e/`). Without this,
+    (`~/Library/Application Support/com.maidang1.writer-computer.e2e/`). Without this,
     a Writer dev/release instance running in another worktree would intercept
     the launch and the WebDriver plugin would never start.
 - **Never enable `--features e2e` for releases shipped to users** — it opens

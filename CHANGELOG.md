@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-05
+
+- Add README fork, upstream attribution, modification notice, GPLv3 distribution, corresponding-source, and warranty-disclaimer notes for this independently maintained fork.
+- Point fork-owned release, updater, website, Cloudflare Worker, and e2e bundle metadata at `Maidang1/writer-computer`, with release docs calling out the required updater key replacement before publishing signed builds.
+- Record the pnpm build-script approvals needed for `vp install` and `vp check` on the current lockfile.
+
 ## 2026-06-22
 
 - Code-health pass across the desktop app and marketing site (now scoring 100/100 on React Doctor). Mostly internal, with a few user-relevant effects: more screen-reader labels on editor and settings controls, semantic landmarks in the editor chrome, a lighter backdrop blur on the anchor-warning banner, and DOMPurify sanitization of rendered Mermaid diagram SVG. Also broke several module import cycles (notably by splitting page-kind views from their behavior so the stores no longer pull in the editor UI), removed unused dependencies (`motion`, `react-resizable-panels`) and dead code, and parallelized a few independent file reads.

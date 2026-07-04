@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$ROOT_DIR/.env"
-RELEASE_REPO="joelbqz/writer-computer"
+RELEASE_REPO="Maidang1/writer-computer"
 
 NOTES_FILE=""
 while [ $# -gt 0 ]; do

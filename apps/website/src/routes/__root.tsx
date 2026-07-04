@@ -9,6 +9,7 @@ const TITLE = "Writer — Fast and lightweight markdown editor";
 const DESCRIPTION =
   "Fast and lightweight app for your workspace's markdown files. Local-first. macOS.";
 const OG_DESCRIPTION = "Fast and lightweight app for your workspace's markdown files.";
+const SITE_URL = "https://github.com/Maidang1/writer-computer";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,10 +21,10 @@ export const Route = createRootRoute({
       { property: "og:title", content: "Writer" },
       { property: "og:description", content: OG_DESCRIPTION },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://writer.computer" },
-      { property: "og:image", content: "https://writer.computer/og.jpg" },
+      { property: "og:url", content: SITE_URL },
+      { property: "og:image", content: `${SITE_URL}/raw/master/apps/website/public/og.jpg` },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://writer.computer/og.jpg" },
+      { name: "twitter:image", content: `${SITE_URL}/raw/master/apps/website/public/og.jpg` },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },

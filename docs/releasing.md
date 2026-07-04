@@ -55,8 +55,8 @@ The script will, in order:
 6. Submit the app to Apple notarization and wait for the result. This is the slowest step and the most likely to fail — if Apple returns anything other than `Accepted`, stop and report the notarization log to the user.
 7. Staple the notarization ticket to the app.
 8. Bundle `Writer.app.tar.gz` and produce `Writer.app.tar.gz.sig` using the Tauri updater key.
-9. Write `latest.json` with the new version, signature, and download URL pointing at `joelbqz/writer-computer`.
-10. Create a **draft** release on `joelbqz/writer-computer` via `gh release create --draft`, uploading the DMG, the updater tarball, and `latest.json`, with the drafted notes attached.
+9. Write `latest.json` with the new version, signature, and download URL pointing at `Maidang1/writer-computer`.
+10. Create a **draft** release on `Maidang1/writer-computer` via `gh release create --draft`, uploading the DMG, the updater tarball, and `latest.json`, with the drafted notes attached.
 11. Tag this repo with `v<version>` and push the tag to origin.
 12. Print the draft URL.
 
@@ -73,8 +73,10 @@ Click **Publish release**. Until you do, the in-app updater won't see the new ve
 
 ## Step 5 — Verify
 
-- Confirm `https://github.com/joelbqz/writer-computer/releases/latest/download/latest.json` resolves to the new version. The in-app updater hits this URL on launch (see `apps/desktop/src-tauri/tauri.conf.json`).
+- Confirm `https://github.com/Maidang1/writer-computer/releases/latest/download/latest.json` resolves to the new version. The in-app updater hits this URL on launch (see `apps/desktop/src-tauri/tauri.conf.json`).
 - Existing installs will pick up the update on next launch.
+
+Before publishing a fork-owned release, replace the updater `pubkey` in `apps/desktop/src-tauri/tauri.conf.json` with the public key matching this fork's `TAURI_SIGNING_PRIVATE_KEY`.
 
 ## When things go wrong
 

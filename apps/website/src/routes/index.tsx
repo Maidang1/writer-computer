@@ -38,7 +38,7 @@ function HomePage() {
           <nav className="site-nav">
             <a
               className="pill pill-ghost"
-              href="https://x.com/joelbqz"
+              href={__WRITER_RELEASES_URL__}
               target="_blank"
               rel="noopener noreferrer"
               data-umami-event="Open updates"
