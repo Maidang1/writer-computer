@@ -2,6 +2,7 @@
 
 ## 2026-07-05
 
+- Increase the editor document column's top inset so Markdown content clears the tab chrome and top fade/blur mask instead of appearing partially covered.
 - Prune the repository to the desktop app: remove the marketing website package, website media/assets, Cloudflare Worker config, website deploy docs, website workspace discovery, and website-only dependency locks while keeping the Tauri desktop app and macOS release flow.
 - Complete the Madinah AI migration with metadata generation and document review. The same Codex/Claude ACP settings now generate title, description, tags, and slug frontmatter suggestions, and can show a structured review panel with summary and issue-level suggestions.
 - Add the Madinah AI writing path and slash-command surface. Preferences now has an AI section for Codex/Claude ACP commands, environment variables, custom instruction, timeout, and connection check. The editor context menu and `/` menu can rewrite the current selection or polish the full document through the shared command path.

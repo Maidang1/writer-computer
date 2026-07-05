@@ -138,6 +138,7 @@
   --writer-editor-font-size: var(--reader-content-font-size);
   --writer-editor-line-height: var(--reader-content-line-height);
   --writer-editor-letter-spacing: var(--reader-content-letter-spacing);
+  --writer-editor-top-padding: calc(var(--chrome-drag-height) + 32px);
 
   font-family: var(--ui-font);
   line-height: 1.5;

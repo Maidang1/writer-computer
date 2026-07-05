@@ -6,6 +6,7 @@
 
 ## Done
 
+- Editor top inset polish — increase the document column's top padding so the first visible content clears the tab chrome and editor fade/blur mask.
 - Desktop-only repository prune: [`SPECs/desktop-only-repo-prune-spec.md`](SPECs/desktop-only-repo-prune-spec.md) — remove the marketing website app, Cloudflare website deployment config, website deploy docs, website workspace discovery, and stale live guidance while keeping the desktop Tauri app and release flow intact.
 - Madinah AI metadata and review migration: [`SPECs/madinah-ai-metadata-review-spec.md`](SPECs/madinah-ai-metadata-review-spec.md) — complete the remaining old-writer AI surfaces by generating blog frontmatter suggestions and showing structured document review results through the current ACP-backed Tauri command path.
 - Madinah AI and slash capability migration: [`SPECs/madinah-ai-slash-spec.md`](SPECs/madinah-ai-slash-spec.md) — add ACP-backed AI settings and run paths for selection rewrite/full-document polish, then expose shared editor commands from the context menu and slash menu.

@@ -64,11 +64,11 @@
   height: 100%;
 }
 
-/* Override the outer prosemark `.cm-editor .cm-content` rule, which sets a
-   ~4rem side inset + 40vh trailing pad meant for the document column. Inside
-   the small mermaid editor panel those values waste most of the horizontal
-   space and trail empty scroll below. The extra `.cm-mermaid-canvas` ancestor
-   bumps specificity past the prosemark rule. */
+/* Override the outer prosemark `.cm-editor .cm-content` rule, which sets the
+   document column leading/side/trailing padding. Inside the small mermaid
+   editor panel those values waste most of the available space and trail empty
+   scroll below. The extra `.cm-mermaid-canvas` ancestor bumps specificity past
+   the prosemark rule. */
 .cm-mermaid-canvas .cm-mermaid-canvas-editor .cm-content {
   padding: 8px 0;
   max-width: none;
