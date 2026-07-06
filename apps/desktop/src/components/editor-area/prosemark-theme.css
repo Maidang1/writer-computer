@@ -416,7 +416,7 @@
 
 .slash-command-menu {
   position: fixed;
-  z-index: 47;
+  z-index: 110;
   display: grid;
   box-sizing: border-box;
   width: 280px;

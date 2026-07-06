@@ -42,6 +42,7 @@
 - Footnote insertion scans existing numeric footnote refs and uses the next number.
 - Slash search now covers the new commands from the real slash command surface.
 - Insert context menu exposes the same snippet commands.
+- Follow-up display fix: slash menu rendering is scheduled on the next animation frame, falls back to `lineBlockAt` / `documentTop` when `coordsAtPos` is unavailable, and uses a higher z-index than command-palette surfaces.
 
 ## Validation
 
@@ -53,6 +54,13 @@
   - Passed: 36 files, 533 tests.
 - `git diff --check`
   - Passed.
+
+Follow-up validation:
+
+- `corepack pnpm exec vp check`
+  - Passed with one existing warning in `apps/desktop/src/lib/frontmatter-schema.ts`.
+- `corepack pnpm exec vp test`
+  - Passed: 36 files, 534 tests.
 
 ## Notes
 

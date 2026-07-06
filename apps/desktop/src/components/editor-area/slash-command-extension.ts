@@ -25,6 +25,7 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
       private trigger: ActiveSlashTrigger | null = null;
       private items: SlashCommandItem[] = [];
       private selectedIndex = 0;
+      private renderFrame: number | null = null;
 
       constructor(private readonly view: EditorView) {
         this.refresh();
@@ -101,7 +102,7 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
           ? 0
           : Math.min(this.selectedIndex, Math.max(0, this.items.length - 1));
         this.ensureMenu();
-        this.render();
+        this.scheduleRender();
       }
 
       private ensureMenu() {
@@ -113,6 +114,10 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
       }
 
       private close() {
+        if (this.renderFrame !== null) {
+          cancelAnimationFrame(this.renderFrame);
+          this.renderFrame = null;
+        }
         this.trigger = null;
         this.items = [];
         this.selectedIndex = 0;
@@ -120,10 +125,18 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
         this.menu = null;
       }
 
+      private scheduleRender() {
+        if (this.renderFrame !== null) return;
+        this.renderFrame = requestAnimationFrame(() => {
+          this.renderFrame = null;
+          this.render();
+        });
+      }
+
       private render() {
         if (!this.menu || !this.trigger) return;
 
-        const caret = this.view.coordsAtPos(this.trigger.to);
+        const caret = getSlashAnchorRect(this.view, this.trigger.to);
         if (!caret) {
           this.close();
           return;
@@ -206,6 +219,32 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
     ),
   ];
 }
+
+function getSlashAnchorRect(
+  view: EditorView,
+  pos: number,
+): { left: number; top: number; bottom: number } | null {
+  const coords = view.coordsAtPos(pos);
+  if (coords) return coords;
+
+  const line = view.state.doc.lineAt(pos);
+  const lineStart = view.coordsAtPos(line.from);
+  const block = view.lineBlockAt(pos);
+  const editorRect = view.dom.getBoundingClientRect();
+  const top = view.documentTop + block.top;
+  const bottom = view.documentTop + block.bottom;
+  const fallbackLeft = lineStart?.left ?? editorRect.left;
+
+  return {
+    left: fallbackLeft,
+    top,
+    bottom,
+  };
+}
+
+export const __testSlashCommandExtension = {
+  getSlashAnchorRect,
+};
 
 function activeSlashTrigger(view: EditorView): ActiveSlashTrigger | null {
   const selection = view.state.selection.main;

@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vite-plus/test";
+import { EditorState } from "@codemirror/state";
+import type { EditorView } from "@codemirror/view";
 import type { EditorCommand } from "../src/components/editor-area/editor-commands";
 import { getEditorCommandsForSurface } from "../src/components/editor-area/editor-commands";
+import { __testSlashCommandExtension } from "../src/components/editor-area/slash-command-extension";
 import {
   createSlashCommandItems,
   getSlashCommandPosition,
@@ -80,6 +83,26 @@ describe("slash commands", () => {
     ).toEqual({
       x: 512,
       y: 212,
+    });
+  });
+
+  test("falls back to line geometry when caret coords are unavailable", () => {
+    const state = EditorState.create({ doc: "/" });
+    const view = {
+      state,
+      documentTop: 100,
+      coordsAtPos: (pos: number) =>
+        pos === 0 ? { left: 120, top: 0, bottom: 20, right: 120 } : null,
+      lineBlockAt: () => ({ top: 40, bottom: 64 }),
+      dom: {
+        getBoundingClientRect: () => ({ left: 24 }),
+      },
+    } as unknown as EditorView;
+
+    expect(__testSlashCommandExtension.getSlashAnchorRect(view, 1)).toEqual({
+      left: 120,
+      top: 140,
+      bottom: 164,
     });
   });
 });

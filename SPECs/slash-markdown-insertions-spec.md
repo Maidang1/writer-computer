@@ -10,6 +10,7 @@ Make the editor slash menu a faster way to insert common Markdown syntax while r
 - Keep command execution in `editor-commands.ts` and text edits in `markdown-formatting.ts`.
 - Preserve the existing slash trigger behavior: type `/`, filter commands, press Enter/Tab or click to run.
 - Keep inserted snippets focused at the editable placeholder.
+- Keep the slash menu visible when CodeMirror cannot synchronously return caret DOM coordinates.
 - Add focused tests for snippet insertion and slash search coverage.
 
 ## Markdown Snippets
@@ -33,5 +34,6 @@ Make the editor slash menu a faster way to insert common Markdown syntax while r
 - Slash search finds the new insert commands by label and keywords.
 - Running each snippet command inserts valid Markdown at the caret.
 - The caret or selection lands on the primary editable placeholder.
+- The slash menu positions from CodeMirror line geometry if `coordsAtPos` is unavailable.
 - Existing context-menu insert actions still work.
 - `vp test` and `vp check` pass for the desktop project.
