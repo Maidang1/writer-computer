@@ -2,6 +2,7 @@
 
 ## 2026-07-06
 
+- Extend the editor slash menu and Insert context menu with Markdown snippets for images, callouts, math blocks, footnotes, HTML comments, and YAML frontmatter, with the caret placed on the editable placeholder.
 - Make the normal editor active line transparent, removing the pale paragraph highlight while keeping fenced-code and table-source rows visually stable.
 
 ## 2026-07-05

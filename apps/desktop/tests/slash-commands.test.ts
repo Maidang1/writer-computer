@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test";
 import type { EditorCommand } from "../src/components/editor-area/editor-commands";
+import { getEditorCommandsForSurface } from "../src/components/editor-area/editor-commands";
 import {
   createSlashCommandItems,
   getSlashCommandPosition,
@@ -32,6 +33,21 @@ describe("slash commands", () => {
     expect(searchSlashCommandItems(items, "rewrite").map((item) => item.id)).toEqual([
       "ai.rewriteSelection",
     ]);
+  });
+
+  test("finds Markdown snippet insertions from the slash surface", () => {
+    const items = createSlashCommandItems(getEditorCommandsForSurface("slash"));
+
+    expect(searchSlashCommandItems(items, "image").map((item) => item.id)).toContain("insertImage");
+    expect(searchSlashCommandItems(items, "callout").map((item) => item.id)).toContain(
+      "insertCallout",
+    );
+    expect(searchSlashCommandItems(items, "latex").map((item) => item.id)).toContain(
+      "insertMathBlock",
+    );
+    expect(searchSlashCommandItems(items, "frontmatter").map((item) => item.id)).toContain(
+      "insertFrontmatter",
+    );
   });
 
   test("matches slash triggers at line start and after whitespace", () => {

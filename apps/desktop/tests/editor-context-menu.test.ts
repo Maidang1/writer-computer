@@ -180,8 +180,14 @@ describe("buildEditorBodyMenuItemsSpec", () => {
     if (insertSubmenu?.kind !== "submenu") throw new Error("expected submenu");
     const items = insertSubmenu.items.filter((e) => e.kind === "item").map((e) => e.id);
     expect(items).toContain("ins.link");
+    expect(items).toContain("ins.image");
     expect(items).toContain("ins.table");
+    expect(items).toContain("ins.callout");
+    expect(items).toContain("ins.math");
+    expect(items).toContain("ins.footnote");
     expect(items).toContain("ins.hr");
+    expect(items).toContain("ins.comment");
+    expect(items).toContain("ins.frontmatter");
     expect(items).toContain("ins.date");
     expect(items).toContain("ins.time");
   });

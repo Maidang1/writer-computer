@@ -7,6 +7,7 @@
 
 ## Done
 
+- Slash Markdown insertions: [`SPECs/slash-markdown-insertions-spec.md`](SPECs/slash-markdown-insertions-spec.md) — extend the editor slash menu and Insert context menu with image, callout, math block, footnote, HTML comment, and YAML frontmatter snippets.
 - Plain paragraph active-line polish — make the normal editor active line transparent while preserving fenced-code and table-source backgrounds.
 - Code block active-line hit test: [`SPECs/code-block-selection-hit-test-spec.md`](SPECs/code-block-selection-hit-test-spec.md) — correct simple fenced-code clicks through the browser DOM caret so CodeMirror activeLine lands on the clicked code line.
 - Code block line-height hit test — share the fenced-code line-height token between the CodeMirror theme and runtime CSS so click mapping and visible code lines use the same vertical metric.

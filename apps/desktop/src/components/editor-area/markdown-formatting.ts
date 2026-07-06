@@ -354,6 +354,121 @@ export const insertNow: StateCommand = ({ state, dispatch }) => {
   return true;
 };
 
+export const insertImage: StateCommand = ({ state, dispatch }) => {
+  const range = state.selection.main;
+  const selected = state.doc.sliceString(range.from, range.to);
+  const alt = selected || "alt";
+  const insert = `![${alt}](url)`;
+  const urlFrom = range.from + insert.length - 4;
+
+  dispatch(
+    state.update({
+      changes: { from: range.from, to: range.to, insert },
+      selection: EditorSelection.range(urlFrom, urlFrom + 3),
+      userEvent: "input.format.image",
+    }),
+  );
+  return true;
+};
+
+export const insertCallout: StateCommand = ({ state, dispatch }) => {
+  const range = state.selection.main;
+  const selected = state.doc.sliceString(range.from, range.to);
+  const body = selected
+    ? selected
+        .split("\n")
+        .map((line) => `> ${line}`)
+        .join("\n")
+    : "> ";
+  const insert = `> [!note]\n${body}`;
+  const noteFrom = range.from + 4;
+
+  dispatch(
+    state.update({
+      changes: { from: range.from, to: range.to, insert },
+      selection: EditorSelection.range(noteFrom, noteFrom + 4),
+      userEvent: "input.format.callout",
+    }),
+  );
+  return true;
+};
+
+export const insertMathBlock: StateCommand = ({ state, dispatch }) => {
+  const range = state.selection.main;
+  const selected = state.doc.sliceString(range.from, range.to);
+  const inner = selected || "";
+  const insert = `$$\n${inner}\n$$`;
+  const innerFrom = range.from + 3;
+
+  dispatch(
+    state.update({
+      changes: { from: range.from, to: range.to, insert },
+      selection: selected
+        ? EditorSelection.range(innerFrom, innerFrom + selected.length)
+        : EditorSelection.cursor(innerFrom),
+      userEvent: "input.format.mathBlock",
+    }),
+  );
+  return true;
+};
+
+export const insertFootnote: StateCommand = ({ state, dispatch }) => {
+  const pos = state.selection.main.head;
+  const nextIndex = nextFootnoteIndex(state.doc.toString());
+  const insert = `[^${nextIndex}]\n\n[^${nextIndex}]: `;
+
+  dispatch(
+    state.update({
+      changes: { from: pos, insert },
+      selection: EditorSelection.cursor(pos + insert.length),
+      userEvent: "input.format.footnote",
+    }),
+  );
+  return true;
+};
+
+export const insertHtmlComment: StateCommand = ({ state, dispatch }) => {
+  const range = state.selection.main;
+  const selected = state.doc.sliceString(range.from, range.to);
+  const text = selected || "note";
+  const insert = `<!-- ${text} -->`;
+  const textFrom = range.from + 5;
+
+  dispatch(
+    state.update({
+      changes: { from: range.from, to: range.to, insert },
+      selection: EditorSelection.range(textFrom, textFrom + text.length),
+      userEvent: "input.format.htmlComment",
+    }),
+  );
+  return true;
+};
+
+export const insertFrontmatter: StateCommand = ({ state, dispatch }) => {
+  const pos = state.selection.main.head;
+  const insert = "---\ntitle: \n---\n";
+  const titlePos = pos + "---\ntitle: ".length;
+
+  dispatch(
+    state.update({
+      changes: { from: pos, insert },
+      selection: EditorSelection.cursor(titlePos),
+      userEvent: "input.format.frontmatter",
+    }),
+  );
+  return true;
+};
+
+function nextFootnoteIndex(text: string): number {
+  let next = 1;
+  const matches = text.matchAll(/\[\^(\d+)\]/g);
+  for (const match of matches) {
+    const value = Number(match[1]);
+    if (Number.isFinite(value)) next = Math.max(next, value + 1);
+  }
+  return next;
+}
+
 // ---------------------------------------------------------------------------
 // Registry and keymap
 // ---------------------------------------------------------------------------

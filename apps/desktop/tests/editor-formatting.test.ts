@@ -17,8 +17,14 @@ import {
   toggleTaskList,
   clearInlineFormatting,
   toggleFencedCodeBlock,
+  insertCallout,
+  insertFootnote,
+  insertFrontmatter,
+  insertHtmlComment,
   insertTable,
   insertHorizontalRule,
+  insertImage,
+  insertMathBlock,
   insertToday,
   insertNow,
 } from "../src/components/editor-area/markdown-formatting";
@@ -371,6 +377,107 @@ describe("insertTable", () => {
     expect(doc(s)).toContain("| Column 1 | Column 2 | Column 3 |");
     expect(doc(s)).toContain("| --- | --- | --- |");
     expect(doc(s)).toContain("|  |  |  |");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertImage
+// ---------------------------------------------------------------------------
+
+describe("insertImage", () => {
+  test("inserts image syntax and selects url", () => {
+    const s = run(insertImage, "", 0);
+    expect(doc(s)).toBe("![alt](url)");
+    expect(sel(s)).toEqual({ from: 7, to: 10 });
+  });
+
+  test("uses selected text as alt text", () => {
+    const s = run(insertImage, "diagram", 0, 7);
+    expect(doc(s)).toBe("![diagram](url)");
+    expect(sel(s)).toEqual({ from: 11, to: 14 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertCallout
+// ---------------------------------------------------------------------------
+
+describe("insertCallout", () => {
+  test("inserts a callout block and selects the type", () => {
+    const s = run(insertCallout, "", 0);
+    expect(doc(s)).toBe("> [!note]\n> ");
+    expect(sel(s)).toEqual({ from: 4, to: 8 });
+  });
+
+  test("quotes selected lines as callout body", () => {
+    const s = run(insertCallout, "hello\nworld", 0, 11);
+    expect(doc(s)).toBe("> [!note]\n> hello\n> world");
+    expect(sel(s)).toEqual({ from: 4, to: 8 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertMathBlock
+// ---------------------------------------------------------------------------
+
+describe("insertMathBlock", () => {
+  test("inserts a math fence with caret inside", () => {
+    const s = run(insertMathBlock, "", 0);
+    expect(doc(s)).toBe("$$\n\n$$");
+    expect(cursor(s)).toBe(3);
+  });
+
+  test("wraps selected text in a math fence", () => {
+    const s = run(insertMathBlock, "x + y", 0, 5);
+    expect(doc(s)).toBe("$$\nx + y\n$$");
+    expect(sel(s)).toEqual({ from: 3, to: 8 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertFootnote
+// ---------------------------------------------------------------------------
+
+describe("insertFootnote", () => {
+  test("inserts the first numbered footnote", () => {
+    const s = run(insertFootnote, "", 0);
+    expect(doc(s)).toBe("[^1]\n\n[^1]: ");
+    expect(cursor(s)).toBe(12);
+  });
+
+  test("increments from existing numbered footnotes", () => {
+    const s = run(insertFootnote, "text [^2]\n\n[^2]: old", 0);
+    expect(doc(s).startsWith("[^3]\n\n[^3]: ")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertHtmlComment
+// ---------------------------------------------------------------------------
+
+describe("insertHtmlComment", () => {
+  test("inserts a comment and selects note text", () => {
+    const s = run(insertHtmlComment, "", 0);
+    expect(doc(s)).toBe("<!-- note -->");
+    expect(sel(s)).toEqual({ from: 5, to: 9 });
+  });
+
+  test("uses selected text as comment content", () => {
+    const s = run(insertHtmlComment, "todo", 0, 4);
+    expect(doc(s)).toBe("<!-- todo -->");
+    expect(sel(s)).toEqual({ from: 5, to: 9 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// insertFrontmatter
+// ---------------------------------------------------------------------------
+
+describe("insertFrontmatter", () => {
+  test("inserts a YAML frontmatter block with caret after title", () => {
+    const s = run(insertFrontmatter, "", 0);
+    expect(doc(s)).toBe("---\ntitle: \n---\n");
+    expect(cursor(s)).toBe(11);
   });
 });
 
