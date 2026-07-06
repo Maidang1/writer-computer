@@ -6,6 +6,7 @@
 - Keep slash menu keyboard navigation visible by scrolling the selected command into view when ArrowUp or ArrowDown changes the highlighted item.
 - Fix slash menu display after typing `/` by rendering it after the editor layout settles, falling back to CodeMirror line geometry when caret coordinates are unavailable, and raising the menu above other app surfaces.
 - Extend the editor slash menu and Insert context menu with Markdown snippets for images, callouts, math blocks, footnotes, HTML comments, and YAML frontmatter, with the caret placed on the editable placeholder.
+- Change `@welldone-software/why-did-you-render` to an explicit `^10.0.1` devDependency so pnpm 8-era tooling can resolve it without catalog shorthand support.
 - Make the normal editor active line transparent, removing the pale paragraph highlight while keeping fenced-code and table-source rows visually stable.
 
 ## 2026-07-05
