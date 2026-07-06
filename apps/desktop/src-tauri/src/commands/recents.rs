@@ -6,6 +6,7 @@
 //! concurrently can't drop each other's entries.
 
 use crate::commands::fs::markdown_file_entry;
+use crate::document::is_supported_document_path;
 use crate::error::AppError;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
@@ -90,13 +91,10 @@ fn push_recent(recents: &mut Vec<RecentEntry>, path: String, opened_at: u64) {
 }
 
 fn is_markdown_file(path: &Path) -> bool {
-    path.is_file()
-        && path.extension().is_some_and(|ext| {
-            ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown")
-        })
+    path.is_file() && is_supported_document_path(path)
 }
 
-/// Record a file open into the global recents list. Non-markdown and
+/// Record a file open into the global recents list. Unsupported and
 /// nonexistent paths are ignored rather than erroring — callers fire this
 /// on every file activation and shouldn't have to pre-validate.
 #[tauri::command]
@@ -236,11 +234,14 @@ mod tests {
     fn is_markdown_file_rejects_non_markdown_and_missing() {
         let dir = tempfile::TempDir::new().unwrap();
         let md = dir.path().join("note.md");
+        let mdx = dir.path().join("note.mdx");
         let txt = dir.path().join("note.txt");
         std::fs::write(&md, "# hi").unwrap();
+        std::fs::write(&mdx, "# hi").unwrap();
         std::fs::write(&txt, "hi").unwrap();
 
         assert!(is_markdown_file(&md));
+        assert!(is_markdown_file(&mdx));
         assert!(!is_markdown_file(&txt));
         assert!(!is_markdown_file(&dir.path().join("missing.md")));
         assert!(!is_markdown_file(dir.path()));

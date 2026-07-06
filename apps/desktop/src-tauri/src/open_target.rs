@@ -13,6 +13,7 @@
 //! Both paths share one canonicalization + classification routine so the two
 //! entry surfaces can never drift.
 
+use crate::document::is_supported_document_path;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
@@ -20,8 +21,8 @@ use std::path::{Path, PathBuf};
 /// drag-drop, CLI arguments, or the single-instance plugin.
 ///
 /// Exactly one shape per source: a folder open carries `workspace` with no
-/// `file`; a markdown-file open carries `file` with no `workspace` — single
-/// files open standalone (compact window) and never imply a workspace.
+/// `file`; a Markdown-family file open carries `file` with no `workspace` — single
+/// document files open standalone (compact window) and never imply a workspace.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct PendingOpenPayload {
     pub workspace: Option<String>,
@@ -41,7 +42,9 @@ impl std::fmt::Display for OpenTargetError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::NotFound(p) => write!(f, "path does not exist: {}", p.display()),
-            Self::Unsupported(p) => write!(f, "not a directory or markdown file: {}", p.display()),
+            Self::Unsupported(p) => {
+                write!(f, "not a directory or markdown/MDX file: {}", p.display())
+            }
             Self::Io(err) => write!(f, "{err}"),
         }
     }
@@ -50,7 +53,7 @@ impl std::fmt::Display for OpenTargetError {
 impl std::error::Error for OpenTargetError {}
 
 /// Lenient variant used by drag-drop and RunEvent::Opened. Returns `None`
-/// for anything that isn't a directory or a markdown file, matching the
+/// for anything that isn't a directory or a supported document file, matching the
 /// original `resolve_dropped_path` behavior.
 pub fn resolve_path(path: &Path) -> Option<PendingOpenPayload> {
     classify(path).ok()
@@ -77,7 +80,7 @@ fn classify(path: &Path) -> Result<PendingOpenPayload, OpenTargetError> {
         });
     }
 
-    if metadata.is_file() && is_markdown(path) {
+    if metadata.is_file() && is_supported_document_path(path) {
         let canonical_file = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
         return Ok(PendingOpenPayload {
             workspace: None,
@@ -86,11 +89,6 @@ fn classify(path: &Path) -> Result<PendingOpenPayload, OpenTargetError> {
     }
 
     Err(OpenTargetError::Unsupported(path.to_path_buf()))
-}
-
-fn is_markdown(path: &Path) -> bool {
-    path.extension()
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown"))
 }
 
 #[cfg(test)]
@@ -128,9 +126,9 @@ mod tests {
     }
 
     #[test]
-    fn markdown_extension_matches_both_md_and_markdown_case_insensitively() {
+    fn document_extension_matches_supported_extensions_case_insensitively() {
         let dir = tempdir().unwrap();
-        for name in ["a.md", "b.MD", "c.markdown", "d.MARKDOWN"] {
+        for name in ["a.md", "b.MD", "c.mdx", "d.MDX", "e.markdown", "f.MARKDOWN"] {
             let path = dir.path().join(name);
             fs::write(&path, "").unwrap();
             let payload = validate_and_resolve(&path).unwrap();

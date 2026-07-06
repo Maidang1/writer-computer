@@ -105,7 +105,7 @@
   --reader-font:
     "TsangerJinKai02", "STKaiti", "KaiTi", "Kaiti SC", "Songti SC", -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --reader-page: rgb(245, 244, 237);
+  --reader-page: #f5f4ed;
   --reader-paper: rgb(255, 255, 255);
   --reader-ink: rgba(36, 41, 47, 0.9);
   --reader-muted: rgb(80, 88, 98);
@@ -138,6 +138,8 @@
   --writer-editor-font-size: var(--reader-content-font-size);
   --writer-editor-line-height: var(--reader-content-line-height);
   --writer-editor-letter-spacing: var(--reader-content-letter-spacing);
+  --writer-code-block-font-size: 14px;
+  --writer-code-block-line-height: 1.75;
   --writer-editor-top-padding: calc(var(--chrome-drag-height) + 32px);
 
   font-family: var(--ui-font);
@@ -180,6 +182,9 @@
 /* Remove focus-visible on editor inputs that manage their own styles */
 [data-document-header] textarea:focus-visible,
 [data-frontmatter] input:focus-visible,
+[data-frontmatter] select:focus-visible,
+[data-frontmatter] textarea:focus-visible,
+[data-document-inspector] button:focus-visible,
 [data-settings-panel] input:focus-visible,
 [data-settings-panel] select:focus-visible,
 [data-settings-panel] button:focus-visible,
@@ -197,7 +202,7 @@ body,
 }
 
 /* Prevent text selection everywhere except editor and form inputs */
-*:not(.cm-editor):not(.cm-content):not(.cm-line):not(textarea):not(input) {
+*:not(.cm-editor):not(.cm-content):not(.cm-line):not(textarea):not(input):not(select) {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -205,7 +210,8 @@ body,
 .cm-editor,
 .cm-editor *,
 textarea,
-input {
+input,
+select {
   -webkit-user-select: text;
   user-select: text;
 }

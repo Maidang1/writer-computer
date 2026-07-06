@@ -139,6 +139,10 @@
   color: var(--reader-ink);
 }
 
+.cm-editor .cm-activeLine {
+  background: transparent !important;
+}
+
 .cm-line.cm-blockquote-line::before {
   inset-inline-start: 0;
 }
@@ -147,8 +151,8 @@
   background: var(--reader-code-block) !important;
   font-family:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-  font-size: 12px;
-  line-height: 1.75;
+  font-size: var(--writer-code-block-font-size, 14px);
+  line-height: var(--writer-code-block-line-height, 1.75);
   margin-left: 0;
   padding-left: 18px;
   padding-right: 18px;
@@ -188,15 +192,6 @@
 
 /* Hide gutters for a clean writing experience */
 .cm-editor .cm-gutters {
-  display: none;
-}
-
-/* Code block header overrides */
-.cm-editor .cm-code-block-lang-container {
-  display: none;
-}
-
-.cm-editor .cm-code-block-copy-button {
   display: none;
 }
 
@@ -405,8 +400,8 @@
 .cm-editor .cm-table-source-line {
   background: var(--reader-code-block) !important;
   color: var(--reader-code-block-text);
-  font-size: 12px;
-  line-height: 1.75;
+  font-size: var(--writer-code-block-font-size, 14px);
+  line-height: var(--writer-code-block-line-height, 1.75);
 }
 
 .cm-editor .cm-activeLine.cm-table-source-line {

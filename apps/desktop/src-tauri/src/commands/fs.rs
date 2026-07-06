@@ -1,3 +1,4 @@
+use crate::document::is_supported_document_path;
 use crate::error::AppError;
 use crate::ignore::WorkspaceIgnore;
 use crate::state::{AppState, WorkspaceState};
@@ -41,7 +42,7 @@ async fn blocking<T: Send + 'static>(
         .map_err(|e| AppError::Io(e.to_string()))?
 }
 
-/// Extract a document title from a markdown file by reading its first few KB.
+/// Extract a document title from a Markdown-family file by reading its first few KB.
 /// Priority: YAML frontmatter `title:` field, then leading `# ` heading.
 fn extract_title(path: &Path) -> Option<String> {
     use std::io::Read;
@@ -116,7 +117,7 @@ pub(crate) fn modified_time(path: &std::path::Path) -> u64 {
         .unwrap_or(0)
 }
 
-/// Recursively checks if a directory contains at least one visible .md file.
+/// Recursively checks if a directory contains at least one visible document file.
 /// Used as fallback before the index is ready. Skips paths matched by the
 /// workspace ignore matcher so ignored directories don't resurrect their
 /// parent in the sidebar.
@@ -136,7 +137,7 @@ fn dir_contains_markdown_recursive(path: &Path, ignore: Option<&WorkspaceIgnore>
         }
 
         if ft.is_file() {
-            if entry_path.extension().and_then(|e| e.to_str()) == Some("md") {
+            if is_supported_document_path(&entry_path) {
                 return true;
             }
         } else if ft.is_dir() && dir_contains_markdown_recursive(&entry_path, ignore) {
@@ -191,7 +192,7 @@ pub fn read_directory_impl(
         let name = entry.file_name().to_string_lossy().to_string();
 
         // Skip hidden files/dirs (the workspace `.gitignore` stays available
-        // because `read_directory` only surfaces markdown files and
+        // because `read_directory` only surfaces supported document files and
         // directories, never dotfiles — see the sidebar spec).
         if name.starts_with('.') {
             continue;
@@ -215,7 +216,7 @@ pub fn read_directory_impl(
                 });
             }
         } else if file_type.is_file() {
-            let is_markdown = entry_path.extension().and_then(|e| e.to_str()) == Some("md");
+            let is_markdown = is_supported_document_path(&entry_path);
             if is_markdown {
                 let title = extract_title(&entry_path);
                 files.push(DirEntry {
@@ -305,7 +306,7 @@ pub async fn write_file(
 }
 
 pub(crate) fn markdown_file_entry(path: &Path) -> Option<DirEntry> {
-    if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("md") {
+    if !path.is_file() || !is_supported_document_path(path) {
         return None;
     }
 
@@ -515,15 +516,16 @@ mod tests {
 
     fn setup_test_dir() -> TempDir {
         let dir = TempDir::new().unwrap();
-        // Create some markdown files
+        // Create some supported document files
         fs::write(dir.path().join("hello.md"), "# Hello").unwrap();
+        fs::write(dir.path().join("article.mdx"), "# Article").unwrap();
         fs::write(dir.path().join("world.md"), "# World").unwrap();
-        // Create a non-markdown file (should be filtered)
+        // Create an unsupported file (should be filtered)
         fs::write(dir.path().join("readme.txt"), "text").unwrap();
-        // Create a subdirectory with markdown
+        // Create a subdirectory with documents
         fs::create_dir(dir.path().join("notes")).unwrap();
         fs::write(dir.path().join("notes").join("note.md"), "# Note").unwrap();
-        // Create a subdirectory without markdown (should be filtered)
+        // Create a subdirectory without documents (should be filtered)
         fs::create_dir(dir.path().join("empty")).unwrap();
         fs::write(dir.path().join("empty").join("data.txt"), "data").unwrap();
         dir
@@ -540,11 +542,14 @@ mod tests {
         assert!(result[0].title.is_none());
         // Remaining should be files, sorted alphabetically
         assert!(!result[1].is_dir);
-        assert_eq!(result[1].name, "hello.md");
-        assert_eq!(result[1].title.as_deref(), Some("Hello"));
+        assert_eq!(result[1].name, "article.mdx");
+        assert_eq!(result[1].title.as_deref(), Some("Article"));
         assert!(!result[2].is_dir);
-        assert_eq!(result[2].name, "world.md");
-        assert_eq!(result[2].title.as_deref(), Some("World"));
+        assert_eq!(result[2].name, "hello.md");
+        assert_eq!(result[2].title.as_deref(), Some("Hello"));
+        assert!(!result[3].is_dir);
+        assert_eq!(result[3].name, "world.md");
+        assert_eq!(result[3].title.as_deref(), Some("World"));
     }
 
     #[test]
@@ -552,9 +557,9 @@ mod tests {
         let dir = setup_test_dir();
         let result = read_directory_impl(&dir.path().to_string_lossy(), None).unwrap();
 
-        // Should have: notes/ dir, hello.md, world.md (3 total)
+        // Should have: notes/ dir, article.mdx, hello.md, world.md (4 total)
         // NOT: readme.txt, empty/ dir
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 4);
         for entry in &result {
             assert!(entry.is_dir || entry.is_markdown);
         }
@@ -574,7 +579,7 @@ mod tests {
 
         let result = read_directory_impl(&dir.path().to_string_lossy(), Some(&state)).unwrap();
 
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 4);
         assert!(result[0].is_dir);
         assert_eq!(result[0].name, "notes");
     }
@@ -593,12 +598,12 @@ mod tests {
     fn test_read_recent_files_sorts_by_index_mtime_and_pages() {
         let dir = TempDir::new().unwrap();
         fs::write(dir.path().join("old.md"), "# Old").unwrap();
-        fs::write(dir.path().join("new.md"), "# New").unwrap();
+        fs::write(dir.path().join("new.mdx"), "# New").unwrap();
         fs::write(dir.path().join("middle.md"), "# Middle").unwrap();
         let state = WorkspaceState::default();
         *state.file_index.write() = vec![
             indexed_file(dir.path(), "old.md", 1),
-            indexed_file(dir.path(), "new.md", 3),
+            indexed_file(dir.path(), "new.mdx", 3),
             indexed_file(dir.path(), "middle.md", 2),
         ];
 
@@ -608,7 +613,7 @@ mod tests {
                 .iter()
                 .map(|entry| entry.name.as_str())
                 .collect::<Vec<_>>(),
-            vec!["new.md", "middle.md"]
+            vec!["new.mdx", "middle.md"]
         );
 
         let second_page = read_recent_files_impl(&state, 2, 2);
@@ -646,7 +651,7 @@ mod tests {
     fn test_read_file_entries_filters_missing_non_markdown_and_outside_root() {
         let dir = TempDir::new().unwrap();
         let outside = TempDir::new().unwrap();
-        let kept = dir.path().join("kept.md");
+        let kept = dir.path().join("kept.mdx");
         fs::write(&kept, "# Kept").unwrap();
         fs::write(dir.path().join("note.txt"), "not markdown").unwrap();
         fs::write(outside.path().join("outside.md"), "# Outside").unwrap();
@@ -666,7 +671,7 @@ mod tests {
         );
 
         assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0].name, "kept.md");
+        assert_eq!(entries[0].name, "kept.mdx");
     }
 
     #[test]

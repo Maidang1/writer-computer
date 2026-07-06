@@ -1,4 +1,4 @@
-import { keymap, dropCursor, EditorView } from "@codemirror/view";
+import { keymap, dropCursor, EditorView, highlightActiveLine } from "@codemirror/view";
 import { type Extension } from "@codemirror/state";
 import { indentOnInput, bracketMatching, foldGutter, foldKeymap } from "@codemirror/language";
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
@@ -13,7 +13,11 @@ import { lintKeymap } from "@codemirror/lint";
 import { defaultHideExtensions } from "./hide";
 import { defaultFoldableSyntaxExtensions } from "./fold";
 import { clickLinkExtension, defaultClickLinkHandler } from "./clickLink";
-import { codeBlockDecorationsExtension, codeFenceTheme } from "./codeFenceExtension";
+import {
+  codeBlockDecorationsExtension,
+  codeFenceClickSelectionExtension,
+  codeFenceTheme,
+} from "./codeFenceExtension";
 import {
   baseSyntaxHighlights,
   baseTheme,
@@ -36,6 +40,7 @@ export const prosemarkBasicSetup = (): Extension => [
   listExtension,
   fixedTabWidthExtension,
   codeBlockDecorationsExtension,
+  codeFenceClickSelectionExtension,
 
   // Basic CodeMirror Setup
   history(),
@@ -44,6 +49,7 @@ export const prosemarkBasicSetup = (): Extension => [
   bracketMatching(),
   closeBrackets(),
   autocompletion(),
+  highlightActiveLine(),
   keymap.of([
     ...prosemarkMarkdownFormattingKeymap,
     ...closeBracketsKeymap,

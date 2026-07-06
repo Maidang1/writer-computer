@@ -17,10 +17,10 @@ const EXIT_RUNTIME: u8 = 3;
 pub const USAGE: &str = "\
 Usage: writer [PATH]
 
-Open a folder or markdown file in the Writer desktop app.
+Open a folder or markdown/MDX file in the Writer desktop app.
 
 Arguments:
-  PATH              Directory or .md/.markdown file to open. If omitted,
+  PATH              Directory or .md/.mdx/.markdown file to open. If omitted,
                     Writer launches with no target.
 
 Options:
@@ -230,7 +230,7 @@ fn run_open<L: Launcher>(path: Option<PathBuf>, cwd: &Path, launcher: &L) -> Exi
     ExitCode::from(EXIT_SUCCESS)
 }
 
-/// Pick the single path the app should receive. A markdown target hands
+/// Pick the single path the app should receive. A Markdown-family target hands
 /// back the file (opened standalone by the app), while a directory target
 /// hands back the workspace.
 fn canonical_target(payload: &PendingOpenPayload) -> PathBuf {

@@ -215,6 +215,23 @@ describe("editor-store", () => {
     expect(file?.titleSource).toBe("h1");
   });
 
+  test("updateFrontmatter(path, empty string) creates an empty frontmatter block", async () => {
+    mockedInvoke.mockResolvedValue({
+      path: "/test/file.md",
+      content: "# From Body\n\nBody",
+      modified_at: 1000,
+    });
+    await useEditorStore.getState().openFile("/test/file.md");
+
+    useEditorStore.getState().updateFrontmatter("/test/file.md", "");
+
+    const file = useEditorStore.getState().openFiles.get("/test/file.md");
+    expect(file?.frontmatter).toBe("");
+    expect(file?.isDirty).toBe(true);
+    expect(file?.title).toBe("From Body");
+    expect(file?.titleSource).toBe("h1");
+  });
+
   test("openNewTab appends and activates a launcher tab", () => {
     useEditorStore.getState().openNewTab();
 
@@ -727,6 +744,7 @@ describe("ui-store", () => {
       isCommandPaletteOpen: false,
       commandPaletteIntent: "search",
       commandPaletteSearch: "",
+      isDocumentInspectorOpen: false,
     });
 
     useSettingsStore.setState({
@@ -767,6 +785,22 @@ describe("ui-store", () => {
 
     useUIStore.getState().closeCommandPalette();
     expect(useUIStore.getState().commandPaletteSearch).toBe("");
+  });
+
+  test("document inspector opens, closes, and toggles without persistence", () => {
+    expect(useUIStore.getState().isDocumentInspectorOpen).toBe(false);
+
+    useUIStore.getState().openDocumentInspector();
+    expect(useUIStore.getState().isDocumentInspectorOpen).toBe(true);
+
+    useUIStore.getState().toggleDocumentInspector();
+    expect(useUIStore.getState().isDocumentInspectorOpen).toBe(false);
+
+    useUIStore.getState().toggleDocumentInspector();
+    expect(useUIStore.getState().isDocumentInspectorOpen).toBe(true);
+
+    useUIStore.getState().closeDocumentInspector();
+    expect(useUIStore.getState().isDocumentInspectorOpen).toBe(false);
   });
 
   test("toggleTheme cycles system→light→dark→system", () => {

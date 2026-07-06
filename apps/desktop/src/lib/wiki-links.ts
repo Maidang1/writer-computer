@@ -1,3 +1,7 @@
+import {
+  MARKDOWN_DOCUMENT_EXTENSIONS,
+  stripMarkdownDocumentExtension,
+} from "./document-extensions";
 import { getFileStem, normalizePath } from "./paths";
 import type { SearchResult } from "@/types/fs";
 
@@ -61,18 +65,12 @@ export function parseWikiLink(raw: string): ParsedWikiLink {
 
 /**
  * Normalize a raw wiki-link target string for resolution:
- * trim whitespace, normalize backslashes, strip .md/.markdown extension.
+ * trim whitespace, normalize backslashes, strip .md/.mdx/.markdown extension.
  */
 export function normalizeWikiTarget(raw: string): string {
   let target = raw.trim().replace(/\\/g, "/");
   target = target.replace(/^\/+/, "");
-  const lower = target.toLowerCase();
-  if (lower.endsWith(".md")) {
-    target = target.slice(0, -3);
-  } else if (lower.endsWith(".markdown")) {
-    target = target.slice(0, -9);
-  }
-  return target;
+  return stripMarkdownDocumentExtension(target);
 }
 
 /**
@@ -80,7 +78,7 @@ export function normalizeWikiTarget(raw: string): string {
  *
  * - If the target contains `/`, treat it as a workspace-relative path (without extension).
  * - Otherwise, treat it as a stem lookup across the workspace.
- *   Resolves only when exactly one markdown file matches the stem.
+ *   Resolves only when exactly one Markdown-family file matches the stem.
  */
 export async function resolveWikiLink(
   raw: string,
@@ -98,7 +96,9 @@ export async function resolveWikiLink(
 
   if (target.includes("/")) {
     const basePath = normalizePath(`${workspaceRoot.replace(/\/$/, "")}/${target}`);
-    const candidatePaths = [`${basePath}.md`, `${basePath}.markdown`];
+    const candidatePaths = MARKDOWN_DOCUMENT_EXTENSIONS.map((extension) => {
+      return `${basePath}.${extension}`;
+    });
     const existence = await Promise.all(candidatePaths.map((path) => fileExists(path)));
     const matchIndex = existence.findIndex(Boolean);
     if (matchIndex !== -1) {
@@ -138,8 +138,5 @@ export function canonicalWikiTarget(file: SearchResult, allFiles: SearchResult[]
 }
 
 function stripMdExtension(path: string): string {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".md")) return path.slice(0, -3);
-  if (lower.endsWith(".markdown")) return path.slice(0, -9);
-  return path;
+  return stripMarkdownDocumentExtension(path);
 }

@@ -1,13 +1,14 @@
 import type { EditorView } from "@codemirror/view";
 import { ProseMarkEditor } from "./prosemark-editor";
-import { FrontmatterPanel } from "./frontmatter-panel";
 import { EditorScrollContainer } from "./editor-scroll-container";
 import { EditorSearchOverview } from "./editor-search-overview";
 import { SectionRail } from "./section-rail";
 import { AiOperationBanner } from "./ai-operation-banner";
 import { AiReviewPanel } from "./ai-review-panel";
+import { DocumentInspector } from "./document-inspector";
 import { useCloseEditorSearchWhenInactive } from "./use-close-editor-search-when-inactive";
 import { useEditorSettingsRef } from "./use-editor-settings";
+import { useIsDocumentInspectorOpen } from "@/hooks/use-document-inspector";
 import { useIsFileLoading } from "@/hooks/use-tabs";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
@@ -32,6 +33,7 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
   const editorSettingsRef = useEditorSettingsRef();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  const isDocumentInspectorOpen = useIsDocumentInspectorOpen();
   useCloseEditorSearchWhenInactive(isActive);
 
   const getScrollContainer = useCallback(() => scrollContainerRef.current, []);
@@ -60,17 +62,6 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
       }
     >
       <EditorScrollContainer ref={scrollContainerRef}>
-        <div
-          className="mx-auto w-full pt-32 pb-6 md:pt-[9rem]"
-          style={{
-            maxWidth: "var(--writer-editor-outer-width)",
-            boxSizing: "border-box",
-            paddingLeft: "var(--writer-editor-side-padding)",
-            paddingRight: "var(--writer-editor-side-padding)",
-          }}
-        >
-          <FrontmatterPanel filePath={path} />
-        </div>
         <div ref={editorSettingsRef}>
           <ProseMarkEditor
             filePath={path}
@@ -80,7 +71,10 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
           />
         </div>
       </EditorScrollContainer>
-      <SectionRail filePath={path} view={editorView} scrollContainerRef={scrollContainerRef} />
+      {!isDocumentInspectorOpen && (
+        <SectionRail filePath={path} view={editorView} scrollContainerRef={scrollContainerRef} />
+      )}
+      {isActive && <DocumentInspector filePath={path} />}
       {isActive && <AiOperationBanner />}
       {isActive && <AiReviewPanel filePath={path} />}
       {isActive && <EditorSearchOverview scrollContainerRef={scrollContainerRef} />}

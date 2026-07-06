@@ -28,8 +28,13 @@ describe("normalizeWikiTarget", () => {
     expect(normalizeWikiTarget("Roadmap.markdown")).toBe("Roadmap");
   });
 
+  test("strips .mdx extension", () => {
+    expect(normalizeWikiTarget("Roadmap.mdx")).toBe("Roadmap");
+  });
+
   test("strips extension case-insensitively", () => {
     expect(normalizeWikiTarget("Roadmap.MD")).toBe("Roadmap");
+    expect(normalizeWikiTarget("Roadmap.MDX")).toBe("Roadmap");
     expect(normalizeWikiTarget("Roadmap.Markdown")).toBe("Roadmap");
   });
 
@@ -164,6 +169,21 @@ describe("resolveWikiLink", () => {
     });
   });
 
+  test("resolves workspace-relative path to mdx when md is missing", async () => {
+    const fuzzySearch = vi.fn();
+    const fileExists = vi.fn().mockImplementation((path: string) => {
+      return Promise.resolve(path === "/vault/blog/Post.mdx");
+    });
+
+    const result = await resolveWikiLink("blog/Post", "/vault", fuzzySearch, fileExists);
+
+    expect(result).toEqual({ kind: "internal", path: "/vault/blog/Post.mdx" });
+    expect(fileExists).toHaveBeenCalledWith("/vault/blog/Post.md");
+    expect(fileExists).toHaveBeenCalledWith("/vault/blog/Post.mdx");
+    expect(fileExists).toHaveBeenCalledWith("/vault/blog/Post.markdown");
+    expect(fuzzySearch).not.toHaveBeenCalled();
+  });
+
   test("returns unresolved for missing path target", async () => {
     const fuzzySearch = vi.fn();
     const fileExists = vi.fn().mockResolvedValue(false);
@@ -193,6 +213,18 @@ describe("resolveWikiLink", () => {
 
     const result = await resolveWikiLink("Notes.markdown", "/vault", fuzzySearch, fileExists);
     expect(result).toEqual({ kind: "internal", path: "/vault/Notes.md" });
+  });
+
+  test("strips .mdx before resolution", async () => {
+    const fuzzySearch = vi
+      .fn()
+      .mockResolvedValue([
+        makeResult({ path: "/vault/Notes.mdx", filename: "Notes.mdx", relative_path: "Notes.mdx" }),
+      ]);
+    const fileExists = vi.fn();
+
+    const result = await resolveWikiLink("Notes.mdx", "/vault", fuzzySearch, fileExists);
+    expect(result).toEqual({ kind: "internal", path: "/vault/Notes.mdx" });
   });
 
   test("returns unresolved for empty target", async () => {
@@ -344,6 +376,24 @@ describe("canonicalWikiTarget", () => {
       path: "/vault/docs/Guide.md",
       filename: "Guide.md",
       relative_path: "docs/Guide.md",
+    });
+    const allFiles = [
+      file,
+      makeResult({
+        path: "/vault/archive/Guide.md",
+        filename: "Guide.md",
+        relative_path: "archive/Guide.md",
+      }),
+    ];
+
+    expect(canonicalWikiTarget(file, allFiles)).toBe("docs/Guide");
+  });
+
+  test("strips .mdx from relative path for duplicates", () => {
+    const file = makeResult({
+      path: "/vault/docs/Guide.mdx",
+      filename: "Guide.mdx",
+      relative_path: "docs/Guide.mdx",
     });
     const allFiles = [
       file,

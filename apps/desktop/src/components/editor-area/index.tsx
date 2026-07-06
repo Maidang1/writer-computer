@@ -3,6 +3,7 @@ import { pageKind } from "./page-kinds";
 import { pageKindView } from "./page-kinds/views";
 import { EditorSearchOverlay } from "./editor-search-overlay";
 import { AnchorWarningBanner } from "./anchor-warning-banner";
+import { useCloseDocumentInspectorOnFileChange } from "@/hooks/use-document-inspector";
 
 interface EditorAreaProps {
   showFooter?: boolean;
@@ -12,6 +13,8 @@ function EditorArea({ showFooter = true }: EditorAreaProps) {
   const activeTab = useActiveTab();
   const activeTabId = useActiveTabId();
   const tabs = useOpenTabs();
+  const activeFilePath = activeTab?.location.kind === "file" ? activeTab.location.path : null;
+  useCloseDocumentInspectorOnFileChange(activeFilePath);
 
   return (
     <div className="relative h-full overflow-hidden">

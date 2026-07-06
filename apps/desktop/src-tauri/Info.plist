@@ -8,10 +8,11 @@
       <key>CFBundleTypeExtensions</key>
       <array>
         <string>md</string>
+        <string>mdx</string>
         <string>markdown</string>
       </array>
       <key>CFBundleTypeName</key>
-      <string>md</string>
+      <string>Markdown</string>
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>LSHandlerRank</key>

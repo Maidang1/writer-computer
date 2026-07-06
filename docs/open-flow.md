@@ -25,8 +25,8 @@ Every entry point funnels through `open_target::classify()`:
 Input path
   ├─ is_dir?    → { workspace: canonicalize(path),   file: None }
   ├─ is_file?
-  │   └─ .md/.markdown (case-insensitive)?
-  │       → { workspace: canonicalize(parent), file: canonicalize(path) }
+  │   └─ .md/.mdx/.markdown (case-insensitive)?
+  │       → { workspace: None, file: canonicalize(path) }
   └─ otherwise  → None (lenient) / Error (strict CLI)
 ```
 
@@ -94,7 +94,7 @@ sequenceDiagram
     WV->>Rust: WindowEvent::DragDrop { paths }
     loop First valid path in drop
         Rust->>Rust: resolve_path(path)
-        Note over Rust: Lenient: skip non-dir / non-.md
+        Note over Rust: Lenient: skip non-dir / unsupported document
     end
     Rust->>State: push_pending_open(payload)  (runtime queue)
     Rust->>WV: emit_to(label, "open:from-drop", payload)
@@ -115,7 +115,7 @@ sequenceDiagram
 
 ## 3. Dock Drop / Finder Open While Running
 
-Dragging onto the dock icon (or double-clicking a `.md` in Finder via the
+Dragging onto the dock icon (or double-clicking a `.md` / `.mdx` in Finder via the
 `fileAssociations` registration) fires `RunEvent::Opened`. The handler routes by
 whether a window already hosts the workspace, whether the main startup slot is
 still unread, and whether the main window is already visible.
@@ -258,7 +258,7 @@ sequenceDiagram
 
 - **Explicit open ≠ session restore**: when `startup_open` is set, the restore
   bundle's session and active file are stripped and `open_file` carries the
-  request. So `writer file.md` opens just that file, not the previous session's
+  request. So `writer file.md` or `writer file.mdx` opens just that file, not the previous session's
   tabs. With no `startup_open`, the bundle keeps the session and restores tabs.
 
 - **One IPC, one render**: `get_startup_state` bundles settings + recents + the

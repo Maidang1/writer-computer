@@ -20,7 +20,7 @@ pub struct StartupState {
     /// Workspace restore payload. Populated for folder opens and session
     /// restores; `None` for standalone file opens and the welcome screen.
     pub restore_bundle: Option<RestoreWorkspaceResponse>,
-    /// Standalone compact-mode open (CLI arg / drag-drop of a markdown
+    /// Standalone compact-mode open (CLI arg / drag-drop of a Markdown-family
     /// file). Mutually exclusive with `restore_bundle`: no workspace is
     /// prepared, no indexing runs — only the prefetched file content and a
     /// single-file watcher started before this returns.
@@ -57,7 +57,7 @@ pub async fn get_startup_state(
     let recent_workspaces = load_recent_workspaces(&app).unwrap_or_default();
     let startup_open = state.take_startup_open();
 
-    // Standalone file open (CLI arg / drag-drop of a markdown file): no
+    // Standalone file open (CLI arg / drag-drop of a Markdown-family file): no
     // workspace is prepared at all — no watcher tree, no gitignore load, no
     // index walk. Prefetch the file content so the compact editor mounts
     // loaded, and start the lightweight single-file watcher.

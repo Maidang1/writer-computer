@@ -1,8 +1,18 @@
 # Changelog
 
+## 2026-07-06
+
+- Make the normal editor active line transparent, removing the pale paragraph highlight while keeping fenced-code and table-source rows visually stable.
+
 ## 2026-07-05
 
+- Correct fenced-code simple clicks by mapping the browser DOM caret back into CodeMirror after mouseup, so the active line stays on the clicked code line instead of shifting to the next source line.
+- Share the fenced-code line-height token between the CodeMirror theme and the runtime editor CSS so code-block click mapping and caret drawing use the same vertical metric as the visible code lines.
+- Make the default Writer light-mode background use the same paper color as the editor page surface, so the Light Theme background control and the reader canvas stay visually aligned.
 - Increase the editor document column's top inset so Markdown content clears the tab chrome and top fade/blur mask instead of appearing partially covered.
+- Stabilize fenced-code-block caret placement by removing the hidden first-line code-block widget and making the runtime code-block CSS use a dedicated 14px code font-size token, so CodeMirror's line geometry matches the visible code text.
+- Move frontmatter editing out of the article body and into a default-collapsed right-side Properties inspector. The inspector opens from a file-sliders icon or the command palette, closes when switching files, can create the first property on documents without frontmatter, and still writes through the existing frontmatter merge/update path used by AI metadata generation.
+- Render the Properties inspector with typed frontmatter controls for Madinah fields: `status` is a select enum, `pubDate` uses a date-time input, `tags` edits a YAML list, and `description` uses a multiline field.
 - Prune the repository to the desktop app: remove the marketing website package, website media/assets, Cloudflare Worker config, website deploy docs, website workspace discovery, and website-only dependency locks while keeping the Tauri desktop app and macOS release flow.
 - Complete the Madinah AI migration with metadata generation and document review. The same Codex/Claude ACP settings now generate title, description, tags, and slug frontmatter suggestions, and can show a structured review panel with summary and issue-level suggestions.
 - Add the Madinah AI writing path and slash-command surface. Preferences now has an AI section for Codex/Claude ACP commands, environment variables, custom instruction, timeout, and connection check. The editor context menu and `/` menu can rewrite the current selection or polish the full document through the shared command path.

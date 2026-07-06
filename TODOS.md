@@ -2,11 +2,18 @@
 
 ## In Progress
 
+- MDX file rendering support: [`SPECs/mdx-file-rendering-support-spec.md`](SPECs/mdx-file-rendering-support-spec.md) — treat `.mdx` files as first-class Markdown documents across open, sidebar, search, recents, watcher, links, and safe editor rendering.
 - Reveal-in-sidebar + residual external-watcher misses: [`SPECs/reveal-in-sidebar-and-external-watcher-spec.md`](SPECs/reveal-in-sidebar-and-external-watcher-spec.md) — keep the explicit tab-context-menu "Reveal in sidebar" action working, leave ordinary file opens from expanding the Everything tree, and characterize the remaining external-file-watcher miss cases through a logging + manual-repro pass before patching further.
 
 ## Done
 
+- Plain paragraph active-line polish — make the normal editor active line transparent while preserving fenced-code and table-source backgrounds.
+- Code block active-line hit test: [`SPECs/code-block-selection-hit-test-spec.md`](SPECs/code-block-selection-hit-test-spec.md) — correct simple fenced-code clicks through the browser DOM caret so CodeMirror activeLine lands on the clicked code line.
+- Code block line-height hit test — share the fenced-code line-height token between the CodeMirror theme and runtime CSS so click mapping and visible code lines use the same vertical metric.
+- Light theme paper background — make the default Writer light-mode background use the same paper color as the editor page surface.
 - Editor top inset polish — increase the document column's top padding so the first visible content clears the tab chrome and editor fade/blur mask.
+- Code block selection hit test: [`SPECs/code-block-selection-hit-test-spec.md`](SPECs/code-block-selection-hit-test-spec.md) — keep fenced-code DOM source-backed and align code-block font metrics with the dedicated 14px code-block token.
+- Frontmatter properties sidebar: [`SPECs/frontmatter-properties-sidebar-spec.md`](SPECs/frontmatter-properties-sidebar-spec.md) — move document frontmatter editing out of the article body and into a default-collapsed right-side properties inspector with typed controls for known Madinah fields.
 - Desktop-only repository prune: [`SPECs/desktop-only-repo-prune-spec.md`](SPECs/desktop-only-repo-prune-spec.md) — remove the marketing website app, Cloudflare website deployment config, website deploy docs, website workspace discovery, and stale live guidance while keeping the desktop Tauri app and release flow intact.
 - Madinah AI metadata and review migration: [`SPECs/madinah-ai-metadata-review-spec.md`](SPECs/madinah-ai-metadata-review-spec.md) — complete the remaining old-writer AI surfaces by generating blog frontmatter suggestions and showing structured document review results through the current ACP-backed Tauri command path.
 - Madinah AI and slash capability migration: [`SPECs/madinah-ai-slash-spec.md`](SPECs/madinah-ai-slash-spec.md) — add ACP-backed AI settings and run paths for selection rewrite/full-document polish, then expose shared editor commands from the context menu and slash menu.

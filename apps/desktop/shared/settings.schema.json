@@ -96,7 +96,7 @@
       "category": "Theme",
       "type": "color",
       "cssVar": "--bg-base",
-      "default": "#FFFFFF"
+      "default": "#F5F4ED"
     },
     {
       "key": "theme.light.foreground",

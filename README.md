@@ -1,6 +1,6 @@
 # Writer
 
-Fast and lightweight app for your workspace's markdown files
+Fast and lightweight app for your workspace's Markdown and MDX files
 
 ![Writer](./assets/screenshot.png)
 

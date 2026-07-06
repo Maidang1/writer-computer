@@ -124,7 +124,7 @@ pub fn record_write(state: &WorkspaceState, path: &Path) {
 
 /// Push `path` into the file index if not already present, then refresh the
 /// `dirs_with_markdown` ancestry so the sidebar's "directory contains
-/// markdown" check returns true for newly-populated subtrees.
+/// documents" check returns true for newly-populated subtrees.
 fn add_to_index(state: &WorkspaceState, path: &Path, root: &Path) {
     let mut index = state.file_index.write();
     let modified_at = crate::commands::fs::modified_time(path);
@@ -194,7 +194,7 @@ fn remove_subtree_from_index(state: &WorkspaceState, dir: &Path, root: &Path) {
     *state.dirs_with_markdown.write() = state::rebuild_dirs_from_index(&index, root);
 }
 
-/// Walk `dir` and merge every `.md` descendant into the file index.
+/// Walk `dir` and merge every supported document descendant into the file index.
 ///
 /// Required for membership-change events that introduce a populated folder
 /// — Create(Folder) of a folder copied from outside the workspace, or
@@ -374,9 +374,7 @@ pub fn start_watcher(
                         continue;
                     }
 
-                    if !is_dir
-                        && path.extension().and_then(|e| e.to_str()) == Some("md")
-                        && path.exists()
+                    if !is_dir && crate::document::is_supported_document_path(path) && path.exists()
                     {
                         state.update_index_modified_at(
                             path,
@@ -438,10 +436,10 @@ pub fn start_watcher(
                     // FSEvents coalesces Create+Remove for the same path
                     // within one watch window, and Modify(Name) doesn't tell
                     // us which side of the rename this path is.
-                    let is_md = path.extension().and_then(|e| e.to_str()) == Some("md");
+                    let is_document = crate::document::is_supported_document_path(path);
                     let path_exists = path.exists();
                     if let Some(ref root) = root_for_filter {
-                        if is_md {
+                        if is_document {
                             if path_exists {
                                 add_to_index(&state, path, root);
                             } else {
@@ -454,7 +452,7 @@ pub fn start_watcher(
                             // in sync.
                             add_subtree_to_index(&state, path, root);
                         } else if !path_exists {
-                            // A vanished non-`.md` path could be a renamed-
+                            // A vanished non-document path could be a renamed-
                             // away folder; FSEvents may not emit per-child
                             // events for the descendants, so prune anything
                             // the index still holds under it.
@@ -463,7 +461,7 @@ pub fn start_watcher(
                     }
 
                     // Refresh the parent directory's listing. Without this,
-                    // non-`.md` file changes, folder deletes, and Finder
+                    // unsupported file changes, folder deletes, and Finder
                     // moves never trigger a sidebar refresh.
                     if !is_dir {
                         if let Some(parent) = path.parent() {
@@ -755,17 +753,17 @@ mod tests {
     }
 
     #[test]
-    fn add_subtree_walks_real_directory_and_indexes_md_files() {
+    fn add_subtree_walks_real_directory_and_indexes_document_files() {
         // Regression: a folder rename within the watch tree (`Modify(Name)`
-        // with `path_exists`) must populate the index for every `.md`
-        // descendant. Before this test existed, the appearing side of a
+        // with `path_exists`) must populate the index for every supported
+        // document descendant. Before this test existed, the appearing side of a
         // rename was silently no-op'd and search/sidebar drifted from disk.
         let dir = tempfile::TempDir::new().unwrap();
         let root = dir.path().canonicalize().unwrap();
         let nested = root.join("nested");
         std::fs::create_dir_all(nested.join("deeper")).unwrap();
         std::fs::write(nested.join("a.md"), "# a").unwrap();
-        std::fs::write(nested.join("deeper/b.md"), "# b").unwrap();
+        std::fs::write(nested.join("deeper/b.mdx"), "# b").unwrap();
         std::fs::write(nested.join("ignored.txt"), "x").unwrap();
 
         let state = WorkspaceState::default();
@@ -778,8 +776,8 @@ mod tests {
             .map(|f| f.path.clone())
             .collect();
         assert!(paths.contains(&nested.join("a.md")));
-        assert!(paths.contains(&nested.join("deeper/b.md")));
-        assert_eq!(paths.len(), 2, "non-md files must not be indexed");
+        assert!(paths.contains(&nested.join("deeper/b.mdx")));
+        assert_eq!(paths.len(), 2, "unsupported files must not be indexed");
 
         let dirs = state.dirs_with_markdown.read();
         assert!(dirs.contains(&nested));

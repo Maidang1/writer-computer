@@ -118,6 +118,15 @@ describe("resolveLinkTarget", () => {
     });
   });
 
+  test("resolves explicit mdx links inside the workspace", async () => {
+    expect(await resolveLinkTarget("../ideas/next.mdx", "/vault/daily/today.md", "/vault")).toEqual(
+      {
+        kind: "internal",
+        path: "/vault/ideas/next.mdx",
+      },
+    );
+  });
+
   test("strips query from markdown links but preserves anchor", async () => {
     expect(
       await resolveLinkTarget("./guide.md?view=1#intro", "/vault/docs/start.md", "/vault"),
@@ -233,10 +242,13 @@ describe("resolveLinkTarget", () => {
     const fileExists = (path: string) => {
       const existing = new Set([
         "/vault/docs/guide.md",
+        "/vault/docs/mdx-only.mdx",
         "/vault/docs/foo/index.md",
+        "/vault/docs/mdx-index/index.mdx",
         "/vault/docs/bar.md",
         "/vault/docs/bar/index.md",
         "/vault/docs/readme-only/README.md",
+        "/vault/docs/readme-mdx/README.mdx",
       ]);
       return existing.has(path);
     };
@@ -268,6 +280,24 @@ describe("resolveLinkTarget", () => {
       });
     });
 
+    test("resolves extensionless path to .mdx file when .md does not exist", async () => {
+      expect(
+        await resolveLinkTarget("./mdx-only", "/vault/docs/start.md", "/vault", fileExists),
+      ).toEqual({
+        kind: "internal",
+        path: "/vault/docs/mdx-only.mdx",
+      });
+    });
+
+    test("resolves to index.mdx when direct files do not exist", async () => {
+      expect(
+        await resolveLinkTarget("./mdx-index", "/vault/docs/start.md", "/vault", fileExists),
+      ).toEqual({
+        kind: "internal",
+        path: "/vault/docs/mdx-index/index.mdx",
+      });
+    });
+
     test("resolves trailing-slash to index.md when .md does not exist", async () => {
       expect(
         await resolveLinkTarget("./foo/", "/vault/docs/start.md", "/vault", fileExists),
@@ -283,6 +313,15 @@ describe("resolveLinkTarget", () => {
       ).toEqual({
         kind: "internal",
         path: "/vault/docs/readme-only/README.md",
+      });
+    });
+
+    test("resolves to README.mdx when README.md does not exist", async () => {
+      expect(
+        await resolveLinkTarget("./readme-mdx", "/vault/docs/start.md", "/vault", fileExists),
+      ).toEqual({
+        kind: "internal",
+        path: "/vault/docs/readme-mdx/README.mdx",
       });
     });
 

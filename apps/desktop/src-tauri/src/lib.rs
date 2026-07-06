@@ -2,6 +2,7 @@ mod commands;
 mod config;
 #[cfg(target_os = "macos")]
 mod dock_menu;
+mod document;
 mod error;
 mod ignore;
 pub mod open_target;
@@ -121,7 +122,7 @@ pub(crate) fn open_new_workspace_window(
     build_secondary_window(app, label)
 }
 
-/// Open a new standalone compact window for a single markdown file — no
+/// Open a new standalone compact window for a single Markdown-family file — no
 /// workspace, no indexing. If a standalone window already hosts this file,
 /// focus it instead of duplicating.
 pub(crate) fn open_standalone_file_window(

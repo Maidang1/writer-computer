@@ -1,3 +1,4 @@
+use crate::document::is_supported_document_path;
 use crate::error::AppError;
 use crate::state::{self, AppState, IndexedFile};
 use ignore::WalkBuilder;
@@ -195,7 +196,7 @@ pub fn index_workspace_impl(
                     return ignore::WalkState::Continue;
                 }
                 if entry.file_type().is_some_and(|ft| ft.is_file())
-                    && entry.path().extension().and_then(|e| e.to_str()) == Some("md")
+                    && is_supported_document_path(entry.path())
                 {
                     let rel = entry
                         .path()
@@ -238,6 +239,7 @@ mod tests {
     fn setup_workspace() -> TempDir {
         let dir = TempDir::new().unwrap();
         fs::write(dir.path().join("readme.md"), "# Readme").unwrap();
+        fs::write(dir.path().join("essay.mdx"), "# Essay").unwrap();
         fs::write(dir.path().join("notes.md"), "# Notes").unwrap();
         fs::write(dir.path().join("data.txt"), "not indexed").unwrap();
         fs::create_dir(dir.path().join("docs")).unwrap();
@@ -252,7 +254,7 @@ mod tests {
     fn test_index_workspace_counts_md_files() {
         let dir = setup_workspace();
         let (index, _dirs) = index_workspace_test(dir.path());
-        assert_eq!(index.len(), 3); // readme.md, notes.md, docs/guide.md
+        assert_eq!(index.len(), 4); // readme.md, essay.mdx, notes.md, docs/guide.md
     }
 
     #[test]

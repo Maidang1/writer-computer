@@ -64,7 +64,7 @@ export function openWorkspace(path: string): Promise<WorkspaceInfo> {
  *  its own per-window `WorkspaceState` on the Rust side (watcher, file
  *  index, settings layer) so two windows hosting different workspaces don't
  *  share file events or search results. Pass `file` to have the new window
- *  focus a specific markdown file inside the workspace. If another window
+ *  focus a specific Markdown-family file inside the workspace. If another window
  *  already hosts `path`, that window is focused instead. */
 export function openWorkspaceInNewWindow(path: string, file?: string | null): Promise<void> {
   return invoke("open_workspace_in_new_window", { path, file: file ?? null });
@@ -113,7 +113,7 @@ export function removeRecentWorkspace(path: string): Promise<void> {
   return invoke("remove_recent_workspace", { path });
 }
 
-/** Open a markdown file in a standalone compact window (no workspace). If a
+/** Open a Markdown-family file in a standalone compact window (no workspace). If a
  *  standalone window already hosts the file, it is focused instead. */
 export function openFileInStandaloneWindow(path: string): Promise<void> {
   return invoke("open_file_in_standalone_window", { path });
@@ -228,7 +228,7 @@ export interface StartupState {
   settings: Record<string, unknown>;
   recent_workspaces: string[];
   restore_bundle: RestoreWorkspaceResponse | null;
-  /** Standalone compact-mode open (CLI arg / drag-drop of a markdown file).
+  /** Standalone compact-mode open (CLI arg / drag-drop of a Markdown-family file).
    *  Mutually exclusive with `restore_bundle`; the single-file watcher is
    *  already running by the time this returns. */
   standalone_file: FileContent | null;

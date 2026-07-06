@@ -7,6 +7,10 @@ import {
   type YamlEntry,
 } from "@/lib/yaml-entries";
 
+export interface FrontmatterEntryUpdateOptions {
+  isComplex?: boolean;
+}
+
 // State machine for frontmatter rows:
 //   - A row is either "placeholder" (key === "" && value === "") or "committed".
 //   - When frontmatter exists but has no committed entries, show one placeholder.
@@ -68,8 +72,22 @@ export function useFrontmatterEntries(filePath: string) {
   );
 
   const updateEntry = useCallback(
-    (index: number, field: "key" | "value", value: string) => {
-      commit(localEntries.map((entry, i) => (i === index ? { ...entry, [field]: value } : entry)));
+    (
+      index: number,
+      field: "key" | "value",
+      value: string,
+      options: FrontmatterEntryUpdateOptions = {},
+    ) => {
+      commit(
+        localEntries.map((entry, i) => {
+          if (i !== index) return entry;
+          const next: YamlEntry = { ...entry, [field]: value };
+          if (options.isComplex !== undefined) {
+            next.isComplex = options.isComplex;
+          }
+          return next;
+        }),
+      );
     },
     [localEntries, commit],
   );
@@ -86,6 +104,13 @@ export function useFrontmatterEntries(filePath: string) {
   const addEntry = useCallback(() => {
     setLocalEntries((prev) => [...prev, makeEmptyRow()]);
   }, []);
+
+  const createFrontmatter = useCallback(() => {
+    const row = makeEmptyRow();
+    lastFrontmatterRef.current = "";
+    setLocalEntries([row]);
+    updateFrontmatter("");
+  }, [updateFrontmatter]);
 
   // On blur, reap rows whose key is still empty. The caller is expected to
   // filter out blurs that stayed within the same row (e.g., Tab from key to
@@ -104,6 +129,7 @@ export function useFrontmatterEntries(filePath: string) {
     updateEntry,
     removeEntry,
     addEntry,
+    createFrontmatter,
     blurEntry,
     removeFrontmatter,
     hasFrontmatter,

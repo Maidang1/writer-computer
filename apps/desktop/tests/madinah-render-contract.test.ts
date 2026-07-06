@@ -12,6 +12,9 @@ const prosemarkCss = readFileSync(
 const settingsSchema = JSON.parse(
   readFileSync(resolve(desktopRoot, "shared/settings.schema.json"), "utf8"),
 ) as { settings: Array<{ key: string; default: unknown }> };
+const writerLightTheme = JSON.parse(
+  readFileSync(resolve(desktopRoot, "shared/themes/writer/light.json"), "utf8"),
+) as { background: string };
 
 function settingDefault(key: string) {
   return settingsSchema.settings.find((setting) => setting.key === key)?.default;
@@ -26,11 +29,16 @@ describe("Madinah render contract", () => {
 
   test("keeps the editor column and paragraph rhythm aligned to the Astro post content", () => {
     expect(appCss).toContain("--reader-content-width: 780px;");
+    expect(appCss).toContain("--reader-page: #f5f4ed;");
     expect(appCss).toContain("--writer-editor-max-width: var(--reader-content-width);");
     expect(appCss).toContain("--writer-editor-font-size: var(--reader-content-font-size);");
     expect(appCss).toContain("--writer-editor-line-height: var(--reader-content-line-height);");
+    expect(appCss).toContain("--writer-code-block-font-size: 14px;");
+    expect(appCss).toContain("--writer-code-block-line-height: 1.75;");
     expect(settingDefault("editor.font-size")).toBe(16.15);
     expect(settingDefault("editor.line-height")).toBe(1.76);
+    expect(settingDefault("theme.light.background")).toBe("#F5F4ED");
+    expect(writerLightTheme.background).toBe("#F5F4ED");
   });
 
   test("maps ProseMark core Markdown blocks to Astro post-content values", () => {
@@ -40,6 +48,11 @@ describe("Madinah render contract", () => {
     expect(prosemarkCss).toContain("background: var(--reader-code) !important;");
     expect(prosemarkCss).toContain(".cm-editor .cm-fenced-code-line");
     expect(prosemarkCss).toContain("background: var(--reader-code-block) !important;");
+    expect(prosemarkCss).toContain(
+      ".cm-editor .cm-activeLine {\n  background: transparent !important;\n}",
+    );
+    expect(prosemarkCss).toContain("font-size: var(--writer-code-block-font-size, 14px);");
+    expect(prosemarkCss).toContain("line-height: var(--writer-code-block-line-height, 1.75);");
     expect(prosemarkCss).toContain(".cm-editor .cm-table-widget th,");
     expect(prosemarkCss).toContain(
       "border: 1px solid color-mix(in srgb, var(--reader-soft) 35%, transparent) !important;",

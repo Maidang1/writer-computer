@@ -1,3 +1,5 @@
+import { isMarkdownDocumentExtension } from "./document-extensions";
+
 export function getFileExtension(path: string): string {
   const lastDot = path.lastIndexOf(".");
   const lastSlash = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
@@ -145,13 +147,13 @@ export async function resolveLinkTarget(
   const resolvedPath = resolvePath(getParentDir(currentFilePath), decodedTarget);
 
   const extension = getFileExtension(resolvedPath).toLowerCase();
-  const isMarkdown = extension === "md" || extension === "markdown";
+  const isMarkdown = isMarkdownDocumentExtension(extension);
 
   if (isMarkdown && (!workspaceRoot || isPathInsideRoot(resolvedPath, workspaceRoot))) {
     return { kind: "internal", path: resolvedPath, ...(anchor ? { anchor } : {}) };
   }
 
-  // Probe for markdown files when the resolved path has no recognized extension.
+  // Probe for Markdown-family files when the resolved path has no recognized extension.
   // For doc-corpus conventions (Hugo, Docusaurus, MDN, …), extensionless
   // absolute paths like `/docs/foo/bar/` are site-root-relative, so we probe
   // both their workspace-root mapping and their filesystem mapping.
@@ -169,10 +171,14 @@ export async function resolveLinkTarget(
     for (const base of bases) {
       const candidates = [
         `${base}.md`,
+        `${base}.mdx`,
         `${base}.markdown`,
         `${base}/index.md`,
+        `${base}/index.mdx`,
         `${base}/index.markdown`,
         `${base}/README.md`,
+        `${base}/README.mdx`,
+        `${base}/README.markdown`,
       ];
       for (const candidate of candidates) {
         if (workspaceRoot && !isPathInsideRoot(candidate, workspaceRoot)) continue;

@@ -1,6 +1,15 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -13,8 +22,67 @@ const APP_BINARY = resolve(
   __dirname,
   "../src-tauri/target/release/bundle/macos/Writer.app/Contents/MacOS/desktop",
 );
+const E2E_APP_DATA_DIR = join(
+  homedir(),
+  "Library/Application Support/com.maidang1.writer-computer.e2e",
+);
+const HIT_TEST_META_PATH = join(E2E_APP_DATA_DIR, "code-block-hit-test.json");
 
-/** @type {import('node:child_process').ChildProcess | undefined} */
+/** @type {{ workspace?: string }} */
+const hitTestFixture = {};
+
+function setupCodeBlockHitTestFixture() {
+  const workspace = mkdtempSync(join(tmpdir(), "writer-code-hit-test-"));
+  const canonicalWorkspace = realpathSync(workspace);
+  const filePath = join(workspace, "code-block-hit-test.md");
+  const targetText = "TextBlock,";
+  const content = [
+    "# Code block hit test",
+    "",
+    "```typescript",
+    'import Anthropic from "@anthropic-ai/sdk";',
+    "import type {",
+    "  ContentBlock,",
+    "  MessageParam,",
+    "  TextBlock,",
+    "  Tool,",
+    "  ToolResultBlockParam,",
+    "  ToolUseBlock,",
+    '} from "@anthropic-ai/sdk/resources/messages";',
+    'import { appendFile, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";',
+    'import { homedir } from "node:os";',
+    'import path from "node:path";',
+    "```",
+    "",
+  ].join("\n");
+
+  mkdirSync(E2E_APP_DATA_DIR, { recursive: true });
+  writeFileSync(filePath, content);
+  writeFileSync(
+    join(E2E_APP_DATA_DIR, "recent_workspaces.json"),
+    JSON.stringify([canonicalWorkspace]),
+  );
+  writeFileSync(
+    join(E2E_APP_DATA_DIR, "sessions.json"),
+    JSON.stringify(
+      {
+        [canonicalWorkspace]: {
+          tabs: [{ location: { kind: "file", path: filePath }, back: [], forward: [] }],
+          active_index: 0,
+        },
+      },
+      null,
+      2,
+    ),
+  );
+  writeFileSync(join(E2E_APP_DATA_DIR, "config"), "appearance.theme = dark\n");
+  writeFileSync(
+    HIT_TEST_META_PATH,
+    JSON.stringify({ workspace: canonicalWorkspace, filePath, targetText }, null, 2),
+  );
+  hitTestFixture.workspace = workspace;
+}
+
 let proxy;
 
 /** @type {import('@wdio/types').Options.Testrunner} */
@@ -51,6 +119,8 @@ export const config = {
       );
     }
 
+    setupCodeBlockHitTestFixture();
+
     proxy = spawn("tauri-webdriver", [], { stdio: "inherit" });
     proxy.on("error", (err) => {
       if (/** @type {NodeJS.ErrnoException} */ (err).code === "ENOENT") {
@@ -72,6 +142,14 @@ export const config = {
       proxy.kill("SIGTERM");
       // Wait for clean exit so a follow-up run doesn't hit "port in use".
       await exited;
+    }
+    if (hitTestFixture.workspace) {
+      rmSync(hitTestFixture.workspace, { recursive: true, force: true });
+    }
+    try {
+      unlinkSync(HIT_TEST_META_PATH);
+    } catch {
+      // The metadata file is best-effort cleanup only.
     }
   },
 };
