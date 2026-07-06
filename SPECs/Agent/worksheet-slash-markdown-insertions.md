@@ -43,6 +43,7 @@
 - Slash search now covers the new commands from the real slash command surface.
 - Insert context menu exposes the same snippet commands.
 - Follow-up display fix: slash menu rendering is scheduled on the next animation frame, falls back to `lineBlockAt` / `documentTop` when `coordsAtPos` is unavailable, and uses a higher z-index than command-palette surfaces.
+- Follow-up keyboard fix: after each slash menu render, the selected command button scrolls into view with `block: "nearest"` so ArrowUp / ArrowDown navigation stays visible.
 
 ## Validation
 
@@ -61,6 +62,13 @@ Follow-up validation:
   - Passed with one existing warning in `apps/desktop/src/lib/frontmatter-schema.ts`.
 - `corepack pnpm exec vp test`
   - Passed: 36 files, 534 tests.
+
+Keyboard follow-up validation:
+
+- `corepack pnpm exec vp check`
+  - Passed with one existing warning in `apps/desktop/src/lib/frontmatter-schema.ts`.
+- `corepack pnpm exec vp test`
+  - Passed: 36 files, 535 tests.
 
 ## Notes
 

@@ -186,6 +186,7 @@ export function slashCommandExtension(getFilePath: () => string): Extension {
 
           this.menu!.appendChild(button);
         });
+        scrollSelectedSlashItem(this.menu);
       }
 
       private async run(item: SlashCommandItem) {
@@ -244,7 +245,13 @@ function getSlashAnchorRect(
 
 export const __testSlashCommandExtension = {
   getSlashAnchorRect,
+  scrollSelectedSlashItem,
 };
+
+function scrollSelectedSlashItem(menu: HTMLElement): void {
+  const selected = menu.querySelector<HTMLButtonElement>("button.is-selected");
+  selected?.scrollIntoView({ block: "nearest" });
+}
 
 function activeSlashTrigger(view: EditorView): ActiveSlashTrigger | null {
   const selection = view.state.selection.main;

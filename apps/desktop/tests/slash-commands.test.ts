@@ -105,6 +105,22 @@ describe("slash commands", () => {
       bottom: 164,
     });
   });
+
+  test("scrolls the selected item into view after rendering", () => {
+    const calls: unknown[] = [];
+    const menu = {
+      querySelector: (selector: string) =>
+        selector === "button.is-selected"
+          ? {
+              scrollIntoView: (options: unknown) => calls.push(options),
+            }
+          : null,
+    } as unknown as HTMLElement;
+
+    __testSlashCommandExtension.scrollSelectedSlashItem(menu);
+
+    expect(calls).toEqual([{ block: "nearest" }]);
+  });
 });
 
 function command(
