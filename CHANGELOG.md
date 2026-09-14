@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-09-14
+
+- Show local images inside Markdown HTML blocks (for example `<p><img src="note-assets/photo.jpeg">`) by resolving them against the current file before the `<img>` is inserted, instead of leaving a relative `src` that WebKit cannot load. Also allow `blob:` / `http://asset.localhost` in the image CSP and broaden the asset-protocol scope so converted local files can actually be served.
+
 ## 2026-07-06
 
 - Replace the Tauri app icon set with the provided illustrated character artwork, regenerated across the configured desktop icon assets and existing platform icon variants.

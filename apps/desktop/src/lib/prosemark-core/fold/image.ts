@@ -1,7 +1,15 @@
-import { Decoration, WidgetType } from "@codemirror/view";
+import { Facet } from "@codemirror/state";
+import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import { normalizeMarkdownDestination } from "@/lib/paths";
 import { foldableSyntaxFacet, selectAllDecorationsOnSelectExtension } from "./core";
 import { iterChildren } from "../utils";
+
+export const imageSrcMapperFacet = Facet.define<(src: string) => string>();
+
+function mappedImageSrc(view: EditorView, url: string): string {
+  const mapper = view.state.facet(imageSrcMapperFacet)[0];
+  return mapper ? mapper(url) : url;
+}
 
 class ImageWidget extends WidgetType {
   constructor(
@@ -15,14 +23,15 @@ class ImageWidget extends WidgetType {
     return this.url === other.url && this.block === other.block;
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     const elem = document.createElement(this.block ? "div" : "span");
     elem.className = "cm-image";
     if (this.block) {
       elem.className += " cm-image-block";
     }
     const image = document.createElement("img");
-    image.src = this.url;
+    image.setAttribute("data-md-src", this.url);
+    image.src = mappedImageSrc(view, this.url);
     elem.appendChild(image);
     return elem;
   }

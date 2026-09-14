@@ -7,6 +7,7 @@
 
 ## Done
 
+- Local images in Markdown HTML blocks — resolve `<img src>` against the open file (via `convertFileSrc`) at widget creation time so relative paths like `Refactoring_UI_assets/page_007_1.jpeg` render instead of the WebKit broken-image placeholder.
 - Tauri app icon replacement: [`SPECs/tauri-app-icon-replacement-spec.md`](SPECs/tauri-app-icon-replacement-spec.md) — use the provided illustrated character image as the regenerated Tauri app icon set.
 - Slash Markdown insertions: [`SPECs/slash-markdown-insertions-spec.md`](SPECs/slash-markdown-insertions-spec.md) — extend the editor slash menu and Insert context menu with image, callout, math block, footnote, HTML comment, and YAML frontmatter snippets.
 - why-did-you-render dependency compatibility — use an explicit semver range instead of a catalog reference for pnpm 8-era tooling.

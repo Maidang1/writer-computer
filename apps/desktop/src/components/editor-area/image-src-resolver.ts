@@ -1,60 +1,74 @@
 import { EditorView, ViewPlugin } from "@codemirror/view";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { decodeLinkPath, getParentDir, normalizeMarkdownDestination } from "@/lib/paths";
+import { imageSrcMapperFacet } from "@/lib/prosemark-core/fold/image";
+import { isConvertedOrRemoteSrc, toLocalImageSrc } from "@/lib/local-media-src";
+import { getParentDir } from "@/lib/paths";
 
-function resolveImgSrc(img: HTMLImageElement, markdownDir: string) {
-  const rawSrc = img.getAttribute("src");
-  const src = rawSrc ? normalizeMarkdownDestination(rawSrc) : rawSrc;
-  if (!src) return;
-  if (
-    src.startsWith("http://") ||
-    src.startsWith("https://") ||
-    src.startsWith("asset:") ||
-    src.startsWith("data:") ||
-    src.startsWith("blob:")
-  )
-    return;
-  const localSrc = decodeLinkPath(src);
-  const absolute = localSrc.startsWith("/") ? localSrc : `${markdownDir}/${localSrc}`;
-  img.src = convertFileSrc(absolute);
+export function resolveImgSrc(img: HTMLImageElement, markdownDir: string) {
+  const rawSrc = img.getAttribute("data-md-src") || img.getAttribute("src");
+  if (!rawSrc) return;
+  const source = img.getAttribute("data-md-src") || rawSrc;
+  if (!img.getAttribute("data-md-src") && isConvertedOrRemoteSrc(rawSrc)) return;
+  const resolvedKey = `${markdownDir}\0${source}`;
+  if (img.dataset.resolvedFor === resolvedKey) return;
+  const next = toLocalImageSrc(source, markdownDir);
+  if (!img.getAttribute("data-md-src")) img.setAttribute("data-md-src", source);
+  img.dataset.resolvedFor = resolvedKey;
+  if (img.getAttribute("src") !== next) img.src = next;
+}
+
+function mapperForPath(getActivePath: () => string | null) {
+  return (src: string) => {
+    const path = getActivePath();
+    if (!path) return src;
+    return toLocalImageSrc(src, getParentDir(path));
+  };
 }
 
 export function imageSrcResolver(getActivePath: () => string | null) {
-  return ViewPlugin.fromClass(
-    class {
-      observer: MutationObserver;
+  return [
+    imageSrcMapperFacet.of(mapperForPath(getActivePath)),
+    ViewPlugin.fromClass(
+      class {
+        observer: MutationObserver;
 
-      constructor(view: EditorView) {
-        const dir = this.getDir(getActivePath());
-        if (dir) this.fixAll(view.dom, dir);
+        constructor(readonly view: EditorView) {
+          const dir = this.getDir(getActivePath());
+          if (dir) this.fixAll(view.dom, dir);
 
-        this.observer = new MutationObserver((mutations) => {
-          const d = this.getDir(getActivePath());
-          if (!d) return;
-          for (const m of mutations) {
-            for (const node of m.addedNodes) {
-              if (node instanceof HTMLImageElement) resolveImgSrc(node, d);
-              else if (node instanceof HTMLElement) {
-                for (const img of node.querySelectorAll("img"))
-                  resolveImgSrc(img as HTMLImageElement, d);
+          this.observer = new MutationObserver((mutations) => {
+            const d = this.getDir(getActivePath());
+            if (!d) return;
+            for (const m of mutations) {
+              for (const node of m.addedNodes) {
+                if (node instanceof HTMLImageElement) resolveImgSrc(node, d);
+                else if (node instanceof HTMLElement) {
+                  for (const img of node.querySelectorAll("img"))
+                    resolveImgSrc(img as HTMLImageElement, d);
+                }
               }
             }
-          }
-        });
-        this.observer.observe(view.dom, { childList: true, subtree: true });
-      }
+          });
+          this.observer.observe(view.dom, { childList: true, subtree: true });
+        }
 
-      getDir(path: string | null): string | null {
-        return path ? getParentDir(path) : null;
-      }
+        update() {
+          const dir = this.getDir(getActivePath());
+          if (dir) this.fixAll(this.view.dom, dir);
+        }
 
-      fixAll(root: HTMLElement, dir: string) {
-        for (const img of root.querySelectorAll("img")) resolveImgSrc(img as HTMLImageElement, dir);
-      }
+        getDir(path: string | null): string | null {
+          return path ? getParentDir(path) : null;
+        }
 
-      destroy() {
-        this.observer.disconnect();
-      }
-    },
-  );
+        fixAll(root: HTMLElement, dir: string) {
+          for (const img of root.querySelectorAll("img"))
+            resolveImgSrc(img as HTMLImageElement, dir);
+        }
+
+        destroy() {
+          this.observer.disconnect();
+        }
+      },
+    ),
+  ];
 }

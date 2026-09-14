@@ -1,6 +1,7 @@
 import { EditorSelection } from "@codemirror/state";
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
-import { foldExtension, foldableSyntaxFacet } from "@/lib/prosemark-core/main";
+import { foldExtension, foldableSyntaxFacet, imageSrcMapperFacet } from "@/lib/prosemark-core/main";
+import { rewriteHtmlImageSources } from "@/lib/local-media-src";
 import type { BlockParser, BlockContext, Line, MarkdownConfig } from "@lezer/markdown";
 import DOMPurify from "dompurify";
 import { dragFrozenSelectionField, rangesTouchInclusive } from "./drag-selection-gate";
@@ -163,11 +164,14 @@ class HtmlBlockWidget extends WidgetType {
     return this.rawText === other.rawText;
   }
 
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const wrapper = document.createElement("div");
     wrapper.className = "cm-html-block-widget";
     wrapper.contentEditable = "false";
-    wrapper.innerHTML = this.sanitizedHtml;
+    const mapper = view.state.facet(imageSrcMapperFacet)[0];
+    wrapper.innerHTML = mapper
+      ? rewriteHtmlImageSources(this.sanitizedHtml, mapper)
+      : this.sanitizedHtml;
     return wrapper;
   }
 
